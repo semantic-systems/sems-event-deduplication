@@ -114,11 +114,6 @@ def get_countries_with_events(keyword, start_date, end_date):
     return countries_list, unsupported_countries
 
 
-def retrieve_extraction_timeframe(df):
-    pd_time = df[start_date]
-    return
-
-
 def alpha_to_name(alpha):
     return alpha_to_name_map[alpha]
 
@@ -137,15 +132,15 @@ end_date = "2023-09-01"
 gdelt = GdeltDoc()
 countries = get_gdelt_country()
 alpha_to_name_map = {value: key for key, value in countries.items()}
-unsupported_countries_store  = {}
+unsupported_countries_store  = []
 
 for keyword in list(chain(*gdelt_search_keywords.values())):
     eventful_countries, unsupported_countries = get_countries_with_events(keyword, start_date, end_date)
     eventful_countries = [c for c in eventful_countries if c is not None]
-    unsupported_countries_store.update(unsupported_countries)
+    unsupported_countries_store.append(unsupported_countries)
 
     for country in tqdm(eventful_countries):
-        summary = {}
+        summary = []
         path = Path(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/")
         if not path.exists():
             path.mkdir(parents=True, exist_ok=False)
@@ -167,7 +162,7 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
             time.sleep(5)
             if resulting_articles.empty:
                 summary_per_day["english"] = 0
-                summary.update({d: summary_per_day})
+                summary.append({d: summary_per_day})
                 continue
             else:
                 english_df = resulting_articles.query('language == "English"')
@@ -175,7 +170,7 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
                     path = f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv"
                     english_df.to_csv(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv")
                 summary_per_day["english"] = len(english_df)
-                summary.update({d: summary_per_day})
+                summary.append({d: summary_per_day})
 
             with open(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/summary.json", 'w') as fp:
                 json.dump(summary, fp)
