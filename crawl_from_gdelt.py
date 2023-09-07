@@ -147,12 +147,11 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
         df_peak_per_country = get_outburst_timeframe_per_country(keyword, start_date, end_date, country)
         unique_date = filter_dates_within_range(df_peak_per_country)
         for d in tqdm(unique_date, leave=False):
-            if Path(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv").exists():
-                continue
             summary_per_day = {"all_language": 0, "english": 0}
-
             end = datetime.strptime(d, "%Y-%m-%d") + timedelta(days=1)
             end = end.strftime("%Y-%m-%d")
+            if Path(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv").exists():
+                continue
             gdelt_filters = Filters(
                 keyword=keyword,
                 start_date=d,
