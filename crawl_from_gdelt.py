@@ -118,6 +118,17 @@ def alpha_to_name(alpha):
     return alpha_to_name_map[alpha]
 
 
+def validate_extracted_dates(unique_dates: List, country: str, keyword: str) -> List:
+    validated_dates = []
+    for d in unique_dates:
+        end = datetime.strptime(d, "%Y-%m-%d") + timedelta(days=1)
+        end = end.strftime("%Y-%m-%d")
+        path = f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv"
+        if not Path(path).exists():
+            validated_dates.append(d)
+    return validated_dates
+
+
 gdelt_search_keywords = {"storm": ["storm", "hurricane", "tornado", "flood", "tsunami"],
                          "explosion": ["explosion"],
                          "wildfire": ["wildfire"],
@@ -146,12 +157,11 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
             path.mkdir(parents=True, exist_ok=False)
         df_peak_per_country = get_outburst_timeframe_per_country(keyword, start_date, end_date, country)
         unique_date = filter_dates_within_range(df_peak_per_country)
+        unique_date = validate_extracted_dates(unique_date, country, keyword)
         for d in tqdm(unique_date, leave=False):
             summary_per_day = {"all_language": 0, "english": 0}
             end = datetime.strptime(d, "%Y-%m-%d") + timedelta(days=1)
             end = end.strftime("%Y-%m-%d")
-            if Path(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv").exists():
-                continue
             gdelt_filters = Filters(
                 keyword=keyword,
                 start_date=d,
