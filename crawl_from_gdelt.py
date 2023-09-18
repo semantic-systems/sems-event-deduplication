@@ -172,16 +172,16 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
             summary_per_day["all_language"] = len(resulting_articles)
             time.sleep(5)
             if resulting_articles.empty:
-                summary_per_day["english"] = 0
-                summary.append({d: summary_per_day})
+                # summary_per_day["english"] = 0
+                # summary.append({d: summary_per_day})
                 continue
             else:
                 english_df = resulting_articles.query('language == "English"')
                 if len(english_df) != 0:
                     path = f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv"
                     english_df.to_csv(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv")
-                summary_per_day["english"] = len(english_df)
-                summary.append({d: summary_per_day})
+                # summary_per_day["english"] = len(english_df)
+                # summary.append({d: summary_per_day})
 
     #         with open(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/summary.json", 'w') as fp:
     #             json.dump(summary, fp)
