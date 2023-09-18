@@ -183,10 +183,10 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
                 summary_per_day["english"] = len(english_df)
                 summary.append({d: summary_per_day})
 
-            with open(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/summary.json", 'w') as fp:
-                json.dump(summary, fp)
-    with open(f"./data/gdelt_crawled/{keyword}/unsupported_country_unsupported_country.json", 'w') as fp:
-        json.dump(unsupported_countries_store, fp)
+    #         with open(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/summary.json", 'w') as fp:
+    #             json.dump(summary, fp)
+    # with open(f"./data/gdelt_crawled/{keyword}/unsupported_country_unsupported_country.json", 'w') as fp:
+    #     json.dump(unsupported_countries_store, fp)
 
 
 
