@@ -162,24 +162,27 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
             summary_per_day = {"all_language": 0, "english": 0}
             end = datetime.strptime(d, "%Y-%m-%d") + timedelta(days=1)
             end = end.strftime("%Y-%m-%d")
-            gdelt_filters = Filters(
-                keyword=keyword,
-                start_date=d,
-                end_date=end,
-                country=country
-            )
-            resulting_articles = gdelt.article_search(gdelt_filters)
-            summary_per_day["all_language"] = len(resulting_articles)
-            time.sleep(5)
-            if resulting_articles.empty:
-                # summary_per_day["english"] = 0
-                # summary.append({d: summary_per_day})
+            try:
+                gdelt_filters = Filters(
+                    keyword=keyword,
+                    start_date=d,
+                    end_date=end,
+                    country=country
+                )
+                resulting_articles = gdelt.article_search(gdelt_filters)
+                summary_per_day["all_language"] = len(resulting_articles)
+                time.sleep(5)
+                if resulting_articles.empty:
+                    # summary_per_day["english"] = 0
+                    # summary.append({d: summary_per_day})
+                    continue
+                else:
+                    english_df = resulting_articles.query('language == "English"')
+                    if len(english_df) != 0:
+                        path = f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv"
+                        english_df.to_csv(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv")
+            except ValueError:
                 continue
-            else:
-                english_df = resulting_articles.query('language == "English"')
-                if len(english_df) != 0:
-                    path = f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv"
-                    english_df.to_csv(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv")
                 # summary_per_day["english"] = len(english_df)
                 # summary.append({d: summary_per_day})
 
