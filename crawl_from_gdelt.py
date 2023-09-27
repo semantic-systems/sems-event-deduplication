@@ -183,6 +183,10 @@ for keyword in list(chain(*gdelt_search_keywords.values())):
                         english_df.to_csv(f"./data/gdelt_crawled/{keyword}/{alpha_to_name(country)}/{d}_{end}.csv")
             except ValueError:
                 continue
+            except AttributeError:
+                continue
+            except ValueError:
+                continue
                 # summary_per_day["english"] = len(english_df)
                 # summary.append({d: summary_per_day})
 
