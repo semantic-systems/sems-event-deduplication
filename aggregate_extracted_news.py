@@ -4,7 +4,7 @@ import glob
 from pathlib import Path
 
 
-root = Path("./data/gdelt_crawled/gdelt_crawled/")
+root = Path("./data/gdelt_crawled/")
 for event_type in Path(root).iterdir():
     if event_type.is_dir():
         for country in Path(event_type).iterdir():
