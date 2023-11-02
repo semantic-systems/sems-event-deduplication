@@ -21,3 +21,13 @@ for event_type in Path(root).iterdir():
                 aggregated_df_per_country = pd.concat(aggregated_news_per_country, axis=0, ignore_index=True)
                 aggregated_path = Path(*csvs.parts[:-1], "aggregated_news.csv")
                 aggregated_df_per_country.to_csv(aggregated_path, index=False)
+        aggregated_news_per_event_type = []
+        for country in Path(event_type).iterdir():
+            csv = Path(country, "aggregated_news.csv")
+            if csv.exists():
+                df = pd.read_csv(csv, index_col=False, header=0)
+                aggregated_news_per_event_type.append(df)
+        if aggregated_news_per_event_type:
+            aggregated_df_per_event_type = pd.concat(aggregated_news_per_event_type, axis=0, ignore_index=True)
+            aggregated_path = Path(event_type, "aggregated_news_all_country.csv")
+            aggregated_df_per_event_type.to_csv(aggregated_path, index=False)
