@@ -13,7 +13,7 @@ for event_type in Path(root).iterdir():
         try:
             df = pd.read_csv(path)
         except FileNotFoundError:
-            continue aggregated_news_all_country
+            continue 
         df['title'] = df['title'].astype(str)
         corpus_embeddings = model.encode(df["title"].values, batch_size=128, show_progress_bar=True, convert_to_tensor=True)
         start_time = time.time()
