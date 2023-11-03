@@ -12,7 +12,8 @@ for event_type in Path(root).iterdir():
         df = pd.read_csv(path)
 
         filtered_df = df
-        corpus_embeddings = model.encode(filtered_df["title"].values, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
+        filtered_df['title'] = filtered_df['title'].astype(str)
+        corpus_embeddings = model.encode(filtered_df["title"].values, batch_size=128, show_progress_bar=True, convert_to_tensor=True)
         start_time = time.time()
         clusters = util.community_detection(corpus_embeddings, min_community_size=25, threshold=0.75)
         print("Clustering done after {:.2f} sec".format(time.time() - start_time))
