@@ -13,11 +13,11 @@ for event_type in Path(root).iterdir():
         try:
             df = pd.read_csv(path)
         except FileNotFoundError:
-            continue 
+            continue
         df['title'] = df['title'].astype(str)
         corpus_embeddings = model.encode(df["title"].values, batch_size=128, show_progress_bar=True, convert_to_tensor=True)
         start_time = time.time()
-        clusters = util.community_detection(corpus_embeddings, min_community_size=25, threshold=0.75)
+        clusters = util.community_detection(corpus_embeddings, min_community_size=15, threshold=0.75)
         print("Clustering done after {:.2f} sec".format(time.time() - start_time))
 
         cluster_col = {}
@@ -29,5 +29,5 @@ for event_type in Path(root).iterdir():
 
             for s in cluster_sentences:
                 print(f"  {s}")
-        df['cluster_25_75'] = df.index.to_series().apply(lambda x: cluster_col.get(x, nan))
-        df.to_csv(Path(event_type, "clustered_news_all_country.csv"), index=False)
+        df['cluster_15_75'] = df.index.to_series().apply(lambda x: cluster_col.get(x, nan))
+        df.to_csv(Path(event_type, "clustered_news_all_country_15_75.csv"), index=False)
