@@ -3,3 +3,4 @@ matplotlib
 pip-chill
 sentence-transformers
 simpletransformers
+qwikidata
