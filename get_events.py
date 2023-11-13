@@ -6,6 +6,31 @@ from qwikidata.utils import dump_entities_to_json
 
 P_INSTANCE_OF = "P31"
 Q_NATURAL_DISASTERS = subclasses_of_natural_disaster
+P_LOCATION = {"P131": "located in the administrative territorial entity",
+              "P276": "location",
+              "P1382": "partially coincident with",
+              "P8138": "located in statistical territorial entity",
+              "P706": "located in/on physical feature",
+              "P4552": "mountain range",
+              "P7153": "significant place",
+              "P17": "country",
+              "P625": "coordinate location",
+              }
+P_TIME = {"P585": "point in time",
+          "P4241": "refine date",
+          "P580": "start time",
+          "P523": "temporal range start",
+          "P3415": "start period",
+          "P577": "publication date",
+          "P582": "end time",
+          "P2047": "duration",
+          ""}
+
+P_NUMBER_OF_DEATH = "P1120"
+P_NUMBER_OF_INJURED = "P1339"
+P_NUMBER_OF_MISSING = "P1446"
+P_NUMBER_OF_CAUSALITIES = "P1590"
+P_VICTIM = "P8032"
 
 
 def instance_of_natural_disaster(item: WikidataItem) -> bool:
