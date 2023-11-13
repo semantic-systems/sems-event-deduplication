@@ -1,13 +1,11 @@
 import time
-
+from data.subclasses_of_natural_disaster import subclasses_of_natural_disaster
 from qwikidata.entity import WikidataItem
 from qwikidata.json_dump import WikidataJsonDump
 from qwikidata.utils import dump_entities_to_json
 
 P_INSTANCE_OF = "P31"
-P_SUBCLASS_OF = "P279"
-Q_NATURAL_DISASTER = "Q8065"
-Q_OCCURRENCE = "Q1190554"
+Q_NATURAL_DISASTERS = subclasses_of_natural_disaster
 
 
 def instance_of_natural_disaster(item: WikidataItem) -> bool:
@@ -17,17 +15,7 @@ def instance_of_natural_disaster(item: WikidataItem) -> bool:
         for claim in claim_group
         if claim.mainsnak.snaktype == "value"
     ]
-    return Q_NATURAL_DISASTER in disaster_qids
-
-
-def subclass_of_natural_disaster(item: WikidataItem) -> bool:
-    claim_group = item.get_claim_group(P_SUBCLASS_OF)
-    disaster_qids = [
-        claim.mainsnak.datavalue.value["id"]
-        for claim in claim_group
-        if claim.mainsnak.snaktype == "value"
-    ]
-    return Q_NATURAL_DISASTER in disaster_qids
+    return bool(Q_NATURAL_DISASTERS1.intersection(disaster_qids))
 
 
 # create an instance of WikidataJsonDump
@@ -41,7 +29,7 @@ t1 = time.time()
 for ii, entity_dict in enumerate(wjd):
     if entity_dict["type"] == "item":
         entity = WikidataItem(entity_dict)
-        if instance_of_natural_disaster(entity) or subclass_of_natural_disaster(entity):
+        if instance_of_natural_disaster(entity):
             natural_disaster.append(entity)
 
     if ii % 1000 == 0:
@@ -57,7 +45,7 @@ for ii, entity_dict in enumerate(wjd):
 
 
 # write the iterable of WikidataItem to disk as JSON
-out_fname = "./filtered_natural_disaster_entities.json"
+out_fname = "./filtered_natural_disaster_entities_included_subclasses.json"
 dump_entities_to_json(natural_disaster, out_fname)
 wjd_filtered = WikidataJsonDump(out_fname)
 
