@@ -15,7 +15,7 @@ def instance_of_natural_disaster(item: WikidataItem) -> bool:
         for claim in claim_group
         if claim.mainsnak.snaktype == "value"
     ]
-    return bool(Q_NATURAL_DISASTERS.intersection(disaster_qids))
+    return bool(list(set(Q_NATURAL_DISASTERS).intersection(set(disaster_qids))))
 
 
 # create an instance of WikidataJsonDump
