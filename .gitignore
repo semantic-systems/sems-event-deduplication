@@ -1,3 +1,4 @@
+*.ipynb
 data/gdelt_crawled/
 .idea/
 .DS_Store
