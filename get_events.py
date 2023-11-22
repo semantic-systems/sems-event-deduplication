@@ -17,14 +17,15 @@ P_LOCATION = {"P131": "located in the administrative territorial entity",
               "P625": "coordinate location",
               }
 P_TIME = {"P585": "point in time",
-          "P4241": "refine date",
+          #"P4241": "refine date", # qualifier
           "P580": "start time",
-          "P523": "temporal range start",
-          "P3415": "start period",
-          "P577": "publication date",
           "P582": "end time",
-          "P2047": "duration",
-          ""}
+          "P523": "temporal range start",
+          "P524": "temporal range end",
+          "P3415": "start period",
+          "P3416": "end period",
+          #"P2047": "duration"
+          }
 
 P_NUMBER_OF_DEATH = "P1120"
 P_NUMBER_OF_INJURED = "P1339"
