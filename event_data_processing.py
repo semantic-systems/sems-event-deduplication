@@ -86,13 +86,17 @@ class NaturalDisasterGdelt(object):
         self.root = root
 
     def aggregate_extracted_news(self):
+        aggregated_news_all_events = []
         for event_type in Path(self.root).iterdir():
             aggregated_news_per_event_type = []
             if event_type.is_dir():
+                event_type_str = str(event_type).split("/")[-1]
                 for country in Path(event_type).iterdir():
                     csv = Path(country, "aggregated_news.csv")
                     if csv.exists():
                         df = pd.read_csv(csv, index_col=False, header=0)
+                        if "gdelt_search_keyword" not in df.columns:
+                            df["gdelt_search_keyword"] = event_type_str
                         aggregated_news_per_event_type.append(df)
                     else:
                         aggregated_news_per_country = []
@@ -106,6 +110,8 @@ class NaturalDisasterGdelt(object):
                                 aggregated_news_per_country.append(df)
                         if aggregated_news_per_country:
                             aggregated_df_per_country = pd.concat(aggregated_news_per_country, axis=0, ignore_index=True)
+                            if "gdelt_search_keyword" not in aggregated_df_per_country.columns:
+                                aggregated_df_per_country["gdelt_search_keyword"] = event_type_str
                             aggregated_df_per_country.to_csv(csv, index=False)
                             aggregated_news_per_event_type.append(aggregated_df_per_country)
 
@@ -114,6 +120,12 @@ class NaturalDisasterGdelt(object):
                 aggregated_path = Path(event_type, "aggregated_news_all_country.csv")
                 aggregated_df_per_event_type.to_csv(aggregated_path, index=False)
                 print("aggregated_news_all_country.csv saved.")
+                aggregated_news_all_events.append(aggregated_df_per_event_type)
+        if aggregated_news_all_events:
+            aggregated_df_all_events = pd.concat(aggregated_news_all_events, axis=0, ignore_index=True)
+            aggregated_path = Path(self.root, "aggregated_news_all_events.csv")
+            aggregated_df_all_events.to_csv(aggregated_path, index=False)
+            print("aggregated_news_all_events.csv saved.")
 
     def get_news_timeframe(self):
         start_date = datetime.strptime("2021-01-01", "%Y-%m-%d")
@@ -161,4 +173,5 @@ if __name__ == "__main__":
     gdelt_dates = list(set(list(chain(*[gdelt_dates[disaster][country] for disaster in gdelt_dates.keys() for country in gdelt_dates[disaster].keys()]))))
     intersection_dates = sorted(list(set(gdelt_dates).intersection(wikidata_dates)))
     print(f"Number of intersection dates: {len(intersection_dates)}\nNumber of gdelt dates: {len(gdelt_dates)}\nNumber of wikidata dates: {len(wikidata_dates)}")
-
+    leftover_dates = [date for date in wikidata_dates if date not in intersection_dates]
+    print(f"Events in wikidata but not in gdelt search: {leftover_dates}")
