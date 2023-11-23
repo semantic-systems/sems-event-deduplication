@@ -14,7 +14,8 @@ class NaturalDisasterWikidata():
     def __int__(self):
         self.P_TIME = {"P585": "point in time",
                        "P580": "start time",
-                       "P523": "temporal range start"}
+                       "P523": "temporal range start",
+                       "P3415": "start period"}
         self.events = self.get_wikidata_natural_disaster_instances()
         self.events_within_timeframe, self.events_out_of_time, self.events_with_invalid_time = self.categorize_events_by_date()
         print(f"{len(self.events_within_timeframe)} instances are between 2021-01-01 and 2023-09-01.")
@@ -42,6 +43,14 @@ class NaturalDisasterWikidata():
             end_date = datetime.strptime("+2023-09-01T00:00:00Z", "+%Y-%m-%dT%H:%M:%SZ")
             return start_date <= event_date <= end_date
         except ValueError:
+            # try:
+            #     print(date[:8])
+            #     event_date = datetime.strptime(date[:8], "+%Y-%m")
+            #     start_date = datetime.strptime("+2021-01", "+%Y-%m")
+            #     end_date = datetime.strptime("+2023-09", "+%Y-%m")
+            #     return start_date <= event_date <= end_date
+            # except ValueError:
+            #     print("value error", date)
             return None
 
     def categorize_events_by_date(self):
