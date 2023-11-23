@@ -98,3 +98,9 @@ class ClusterNews(object):
             prediction = {}
         return prediction.get("event type", None), [e["entity"] for e in
                                                     prediction.get("event arguments", [{"entity": None}])]
+
+
+if __name__ == "__main__":
+    news_cluster = ClusterNews()
+    news_cluster.__init__()
+    news_cluster.cluster_news_all_events()
