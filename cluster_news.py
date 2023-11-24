@@ -1,3 +1,4 @@
+import numpy as np
 from sentence_transformers import SentenceTransformer, util
 import time
 import pandas as pd
@@ -5,6 +6,7 @@ from pathlib import Path
 from numpy import nan
 import requests
 from json import JSONDecodeError
+from tqdm.notebook import tqdm
 
 
 root = Path("./data/gdelt_crawled/")
@@ -85,7 +87,24 @@ class ClusterNews(object):
                 for s in cluster_sentences:
                     print(f"  {s}")
             df[cluster_col_name] = df.index.to_series().apply(lambda x: cluster_col.get(x, nan))
-            df.to_csv(Path(self.root, "clustered_news_all_events.csv"), index=False)
+            df.to_csv(Path("./data/gdelt_crawled/clustered_news_all_events.csv"), index=False)
+
+    def attach_silver_event_type_to_df(self, csv_path: str):
+        df = pd.read_csv(csv_path)
+        df["title"] = df['title'].astype(str)
+        all_event_types = []
+        batch_size = 512
+        num_iteration = int(np.ceil(len(df["title"].values)/batch_size))
+        for i in tqdm(range(num_iteration)):
+            start_index = batch_size*i
+            end_index = batch_size*(i+1)
+            event_types = self.run_coypu_ee(list(df["title"].values[start_index:end_index]))
+            all_event_types.extend(event_types)
+            if i % batch_size == 0:
+                silvered_df = df.loc[:end_index-1, :]
+                silvered_df.loc[:, ("pred_event_type")] = all_event_types
+                silvered_df.to_csv(Path(self.root, "silvered_news_all_events.csv"), index=False)
+        return all_event_types
 
     @staticmethod
     def run_coypu_ee(message):
@@ -96,11 +115,11 @@ class ClusterNews(object):
             prediction = x.json()
         except JSONDecodeError:
             prediction = {}
-        return prediction.get("event type", None), [e["entity"] for e in
-                                                    prediction.get("event arguments", [{"entity": None}])]
+        return prediction.get("event type", [np.nan]*len(message))
 
 
 if __name__ == "__main__":
     news_cluster = ClusterNews()
     news_cluster.__init__()
     news_cluster.cluster_news_all_events()
+    news_cluster.attach_silver_event_type_to_df("./data/gdelt_crawled/clustered_news_all_events.csv")
