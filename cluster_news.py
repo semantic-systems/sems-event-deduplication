@@ -59,7 +59,7 @@ class ClusterNews(object):
         clustered_news_all_event_path = Path(self.root, "clustered_news_all_events.csv")
         cluster_col_name = f"cluster_{min_community_size}_{threshold * 100}"
         if clustered_news_all_event_path.exists():
-            df = pd.read_csv(aggregated_news_all_event_path)
+            df = pd.read_csv(clustered_news_all_event_path)
             if cluster_col_name in df.columns:
                 print(f"Clustering with min_community_size ({min_community_size}) "
                       f"and threshold {threshold} already created.")
