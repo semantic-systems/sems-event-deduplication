@@ -4,3 +4,4 @@ pip-chill
 sentence-transformers
 simpletransformers
 qwikidata
+spacy-entity-linker

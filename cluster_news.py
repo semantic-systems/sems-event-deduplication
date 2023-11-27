@@ -6,7 +6,7 @@ from pathlib import Path
 from numpy import nan
 import requests
 from json import JSONDecodeError
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 
 root = Path("./data/gdelt_crawled/")
