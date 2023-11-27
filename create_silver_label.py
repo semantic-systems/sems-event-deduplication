@@ -30,6 +30,7 @@ class EventDeduplicationDataFrame(object):
                 silvered_df.to_csv(Path(self.root, "silvered_news_all_events.csv"), index=False)
 
     def annotate_entity(self):
+        self.raw_df["title"] = self.raw_df['title'].astype(str)
         self.raw_df["entities"] = self.raw_df["title"].map(self.get_entity_from_spacy)
         self.raw_df.to_csv(Path(self.root, "annotated_news_all_events.csv"), index=False)
 
@@ -60,5 +61,6 @@ class EventDeduplicationDataFrame(object):
 
 
 if __name__ == "__main__":
+    spacy.prefer_gpu()
     dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/silvered_news_all_events.csv")
     dataset.annotate_entity()
