@@ -27,12 +27,12 @@ class EventDeduplicationDataFrame(object):
             if i % batch_size == 0:
                 silvered_df = self.raw_df.loc[:end_index - 1, :]
                 silvered_df.loc[:, ("pred_event_type")] = all_event_types
-                silvered_df.to_csv(Path(self.root, "silvered_news_all_events.csv"), index=False)
+                silvered_df.to_csv(Path(self.root, "annotated_event_news_all_events.csv"), index=False)
 
     def annotate_entity(self):
         self.raw_df["title"] = self.raw_df['title'].astype(str)
         self.raw_df["entities"] = self.raw_df["title"].map(self.get_entity_from_spacy)
-        self.raw_df.to_csv(Path(self.root, "annotated_news_all_events.csv"), index=False)
+        self.raw_df.to_csv(Path(self.root, "annotated_entity_news_all_events.csv"), index=False)
 
     def get_entity_from_spacy(self, text: str):
         entity_info = {"entity_type": {},
@@ -59,8 +59,34 @@ class EventDeduplicationDataFrame(object):
             prediction = {}
         return prediction.get("event type", [np.nan] * len(message))
 
+    def create_silver_label(self):
+        pass
+
+    def compare_predicted_event_type_with_gdelt_keyword(self):
+        of_interest_predicted_event_type = ["tropical_storm", "flood"]
+        pass
+
+    def compare_time(self):
+        pass
+
+    def compare_location(self):
+        pass
+
+    def compare_entities(self):
+        pass
+
+    def merge_cluster(self):
+        pass
+
+    def remove_cluster(self):
+        pass
+
+    def remove_instance_from_cluster(self):
+        pass
 
 if __name__ == "__main__":
     spacy.prefer_gpu()
     dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/silvered_news_all_events.csv")
-    dataset.annotate_entity()
+    # dataset.annotate_event_type()
+    # dataset.annotate_entity()
+
