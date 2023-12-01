@@ -62,6 +62,19 @@ class EventDeduplicationDataFrame(object):
     def create_silver_label(self):
         pass
 
+    @staticmethod
+    def remove_clusters_with_wrong_type(df):
+        df_list = []
+        for cluster_id in df["cluster_15_75.0"].unique():
+            tmp_df = df.loc[df["cluster_15_75.0"] == cluster_id]
+            if "tropical_storm" in tmp_df["pred_event_type"].values or "flood" in tmp_df["pred_event_type"].values:
+                df_list.append(tmp_df)
+        new_df = pd.concat(df_list)
+        drop_df = new_df.drop(columns=['url_mobile', 'Unnamed: 0', 'seendate', 'socialimage', 'language'])
+        drop_df = drop_df.drop_duplicates(subset='title', keep="last")
+        drop_df.to_csv("silver_all_v1.csv")
+        return drop_df
+
     def compare_predicted_event_type_with_gdelt_keyword(self):
         of_interest_predicted_event_type = ["tropical_storm", "flood"]
         pass
@@ -83,6 +96,16 @@ class EventDeduplicationDataFrame(object):
 
     def remove_instance_from_cluster(self):
         pass
+
+    def link_cluster_to_wikidata_events(self):
+        ## check for event dates
+        ## check for location
+        ## check for entity
+        pass
+    
+    def evaluate_on_trec_is(self):
+        pass
+
 
 if __name__ == "__main__":
     spacy.prefer_gpu()
