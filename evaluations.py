@@ -24,7 +24,7 @@ class CrisisfactsTestSet(Dataset):
                   "006": "Saddleridge Wildfire 2019",
                   "007": "Hurricane Laura 2020",
                   "008": "Hurricane Sally 2020"}
-    
+
     def __init__(self):
         # load data and shuffle, befor splitting
         self.df = pd.read_csv("./data/test_from_crisisfacts.csv")
