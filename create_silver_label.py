@@ -25,9 +25,9 @@ class EventDeduplicationDataFrame(object):
             event_types = self.run_coypu_ee(list(self.raw_df["title"].values[start_index:end_index]))
             all_event_types.extend(event_types)
             if i % batch_size == 0:
-                silvered_df = self.raw_df.loc[:end_index - 1, :]
-                silvered_df.loc[:, ("pred_event_type")] = all_event_types
-                silvered_df.to_csv(Path(self.root, "annotated_event_news_all_events.csv"), index=False)
+                annotated_df = self.raw_df.loc[:end_index - 1, :]
+                annotated_df.loc[:, ("pred_event_type")] = all_event_types
+                annotated_df.to_csv(Path(self.root, "annotated_event_news_all_events.csv"), index=False)
 
     def annotate_entity(self):
         self.raw_df["title"] = self.raw_df['title'].astype(str)
