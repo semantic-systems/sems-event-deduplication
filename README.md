@@ -41,8 +41,8 @@ for e in event_type:
             silver_labeled_clusters[i] = e
 
 9. discard 0 energy with oos
-10. mid entropy and without oos as alright data. mid energy with oos move to suspect_cluster_list
-11. high energy without oos hard samples
+10. mid entropy and without oos as alright data. mid entropy with oos move to suspect_cluster_list
+11. high entropy without oos hard samples
 
 
 # Task Descriptions
@@ -58,11 +58,13 @@ Given a title of a crisis-related news article,
 the model needs to predict a value between 0 and 1, 
 describing the temporality of the event instance, 
 that this new article's title is referring to.
-ß represents the beginning of this event instance and 1 the end. 
+0 represents the beginning of this event instance and 1 the end. 
 
 
 ### Baseline Models
 1. Weak Baseline: fine-tuned s-bert
 2. Strong Baseline: fine-tuned s-bert with enriched information from wikidata, constructed event KGs (that grow over event temporal development, indicated by the number of entities in the graph, and complexity of the graph per event instance. Such event KGs contains also event type, entity type, temporal relations and their values); with event graph size estimated news articles volume; and event type predicted by an event type detector trained on TREC-IS.)
 
-**Event duration prediction is a regression task that captures event temporality from a narrative perspective. More specifically, this task investigates how events are addressed in the tone of reporting. It showcases how discourse of a story can be modelled.**
+**Event duration prediction is a regression task that captures event temporality from a 
+narrative perspective. More specifically, this task investigates how events are addressed 
+in the tone of reporting. It showcases how discourse of a story can be modelled.**
