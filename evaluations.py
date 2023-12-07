@@ -69,7 +69,7 @@ class EventDurationPredictionDataset(Dataset):
 
     def __init__(self):
         # load data and shuffle, befor splitting
-        self.df = pd.read_csv("./data/test_from_crisisfacts.csv")
+        self.df = pd.read_csv("./event_duration_prediction_dataset.csv")
         self.train_df = self.df.loc[self.df["event_type"].isin(["Hurricane Florence 2018", "Hurricane Sally 2020"])]
         self.valid_df = self.df.loc[self.df["event_type"].isin(["Hurricane Laura 2020", "Saddleridge Wildfire 2019"])]
         self.test_df = self.df.loc[self.df["event_type"].isin(["2018 Maryland Flood", "Lilac Wildfire 2017", "Cranston Wildfire 2018", "Holy Wildfire 2018"])]
@@ -97,3 +97,8 @@ class EventDurationPredictionDataset(Dataset):
         if set_type == DatasetType.VAL:
             self.dataset, self.labels = self.val, self.val_labels
         return self
+
+
+
+if __name__ == "__main__":
+    data = EventDurationPredictionDataset().set_fold(1)
