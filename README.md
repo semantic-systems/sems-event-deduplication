@@ -33,14 +33,7 @@ for each title,
 4. remove clusters with only oos predictions (benchmark bias 1: false negatives of event detector)
 5. set clusters with only one type of predicted event as easy cluster, for this the best is to be coupled with a high threshold for creating clusters.
 6. compute entropy of the predicted event type distribution for each cluster. 
-7. define cluster with 0 entropy and with a whitelisted predicted event type as easy data 
-silver_labeled_clusters = {}
-
-for e in event_type:
-    for i, c in enumerate(cluster):
-        if all(is_event_type(e, c)):
-            silver_labeled_clusters[i] = e
-
+7. define cluster with 0 entropy and with a whitelisted predicted event type as easy data
 9. discard 0 energy with oos
 10. mid entropy and without oos as alright data. mid entropy with oos move to suspect_cluster_list
 11. high entropy without oos hard samples
