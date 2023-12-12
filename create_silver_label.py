@@ -29,6 +29,7 @@ class EventDeduplicationDataFrame(object):
 
     def create_silver_label(self):
         df = self.raw_df
+        df['title'] = df['title'].astype(str)
         print(f"Raw dataset - Number of entires: {len(df)}")
         df = self.remove_stick_in_title(df)
         print(f"Stick replaced dataset - Number of entires: {len(df)}")
