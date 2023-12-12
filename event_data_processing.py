@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from itertools import chain
 
 
-root = Path("./data/gdelt_crawled/gdelt_crawled")
+root = Path("./data/gdelt_crawled/")
 
 
 class NaturalDisasterWikidata():
