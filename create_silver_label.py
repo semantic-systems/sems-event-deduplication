@@ -27,6 +27,21 @@ class EventDeduplicationDataFrame(object):
         self.nlp = spacy.load("en_core_web_md")
         self.nlp.add_pipe("entityLinker", last=True)
 
+    def create_silver_label(self):
+        df = self.raw_df
+        print(f"Raw dataset - Number of entires: {len(df)}")
+        df = self.remove_stick_in_title(df)
+        print(f"Stick replaced dataset - Number of entires: {len(df)}")
+        df = df.drop_duplicates(subset='title', keep="last")
+        print(f"Dropped duplicates dataset - Number of entires: {len(df)}")
+        df = self.cluster_titles(df, forced=True)
+        df = self.annotate_event_type(df, forced=True)
+        df = self.annotate_entity(df, forced=True)
+        df, df_outliers = self.run_temporal_clustering(df, min_samples=3, eps=1, forced=True)
+        print(f"Temporally valid dataset - Number of entires: {len(df)}")
+        df, df_oos = self.remove_oos_clusters(df, forced=True)
+        print(f"OOS removed dataset - Number of entires: {len(df)}")
+
     def annotate_event_type(self, df, forced=False):
         if not forced and Path(self.root, "annotated_entity_news_all_events.csv").exists():
             return df
@@ -92,20 +107,6 @@ class EventDeduplicationDataFrame(object):
         df.loc[title_indicese_with_a_stick, "title"] = title_wo_stick
         return df
 
-    def create_silver_label(self, df):
-        print(f"Raw dataset - Number of entires: {len(df)}")
-        df = self.remove_stick_in_title(df)
-        print(f"Stick replaced dataset - Number of entires: {len(df)}")
-        df = df.drop_duplicates(subset='title', keep="last")
-        print(f"Dropped duplicates dataset - Number of entires: {len(df)}")
-        df = self.cluster_titles(df, forced=True)
-        df = self.annotate_event_type(df, forced=True)
-        df = self.annotate_entity(df, forced=True)
-        df, df_outliers = self.run_temporal_clustering(df, min_samples=3, eps=1, forced=True)
-        print(f"Temporally valid dataset - Number of entires: {len(df)}")
-        df, df_oos = self.remove_oos_clusters(df, forced=True)
-        print(f"OOS removed dataset - Number of entires: {len(df)}")
-
     def cluster_titles(self,
                        df,
                        batch_size: int = 512,
@@ -141,7 +142,7 @@ class EventDeduplicationDataFrame(object):
                 for s in cluster_sentences:
                     print(f"  {s}")
             df[cluster_col_name] = df.index.to_series().apply(lambda x: cluster_col.get(x, nan))
-            df.to_csv(Path("./data/gdelt_crawled/clustered_news_all_events.csv"), index=False)
+            df.to_csv(Path(self.root, "clustered_news_all_events.csv"), index=False)
         return df
 
     def run_temporal_clustering(self, df, min_samples=3, eps=1, forced=False):
@@ -179,8 +180,8 @@ class EventDeduplicationDataFrame(object):
                     #     f"Cluster {cluster}: \n Outlier dates: {outlier_dates}\n Outlier title: {outlier_title}\n Outlier pred_event_type: {outlier_pred_event_type} \n most popular cluster: {most_populated_cluster}\n most popular cluster dates: {most_populated_cluster_dates}\n most popular cluster title: {most_populated_cluster_title}\n most popular cluster pred_event_type: {most_populated_cluster_pred_event_type}\n\n")
             df_removed_outliers = pd.concat(df_removed_outliers, ignore_index=True)
             df_outliers = pd.concat(df_outliers, ignore_index=True)
-            df_removed_outliers.to_csv("temporally_denoised_news.csv", index=False)
-            df_outliers.to_csv("temporally_noisy_news.csv", index=False)
+            df_removed_outliers.to_csv(Path(self.root, "temporally_denoised_news.csv"), index=False)
+            df_outliers.to_csv(Path(self.root, "temporally_noisy_news.csv"), index=False)
             return df_removed_outliers, df_outliers
 
     @staticmethod
@@ -200,9 +201,9 @@ class EventDeduplicationDataFrame(object):
                 else:
                     oos_df_list.append(df.loc[df["cluster_15_75.0"] == cluster_id])
             oos_removed_df = pd.concat(df_list, ignore_index=True)
-            oos_removed_df.to_csv("oos_removed_news.csv")
+            oos_removed_df.to_csv(Path(self.root, "oos_removed_news.csv"), index=False)
             oos_df = pd.concat(oos_df_list, ignore_index=True)
-            oos_df.to_csv("oos_news.csv", index=False)
+            oos_df.to_csv(Path(self.root, "oos_news.csv"), index=False)
             return oos_removed_df, oos_df
 
     def compare_predicted_event_type_with_gdelt_keyword(self):
@@ -240,6 +241,6 @@ class EventDeduplicationDataFrame(object):
 if __name__ == "__main__":
     spacy.prefer_gpu()
     dataset = EventDeduplicationDataFrame()
-    # dataset.annotate_event_type()
+    dataset.create_silver_label()
     # dataset.annotate_entity()
 
