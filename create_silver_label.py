@@ -103,7 +103,7 @@ class EventDeduplicationDataFrame(object):
         df = self.annotate_entity(df, forced=True)
         df, df_outliers = self.run_temporal_clustering(df, min_samples=3, eps=1, forced=True)
         print(f"Temporally valid dataset - Number of entires: {len(df)}")
-        df, df_oos = self.remove_oos_clusters(df)
+        df, df_oos = self.remove_oos_clusters(df, forced=True)
         print(f"OOS removed dataset - Number of entires: {len(df)}")
 
     def cluster_titles(self,
@@ -239,7 +239,7 @@ class EventDeduplicationDataFrame(object):
 
 if __name__ == "__main__":
     spacy.prefer_gpu()
-    dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/silvered_news_all_events.csv")
+    dataset = EventDeduplicationDataFrame()
     # dataset.annotate_event_type()
     # dataset.annotate_entity()
 
