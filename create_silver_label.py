@@ -38,7 +38,7 @@ class EventDeduplicationDataFrame(object):
         print(f"Denoising dataset with hierarchical clustering...")
         print(f"")
         print("    Clustering all news titles with sentence bert...")
-        df = self.cluster_titles(df, forced=False)
+        df = self.cluster_titles(df, forced=True)
         print("    Annotating event type with a trained event detector on TREC-IS dataset...")
         df = self.annotate_event_type(df, forced=False)
         print("    Annotating entities and links to wikidata...")
@@ -101,7 +101,7 @@ class EventDeduplicationDataFrame(object):
             prediction = x.json()
         except JSONDecodeError:
             prediction = {}
-        return prediction.get("event type", [np.nan] * len(message))
+        return prediction.get("event type", [nan] * len(message))
 
     @staticmethod
     def remove_stick_in_title(df):
@@ -122,7 +122,7 @@ class EventDeduplicationDataFrame(object):
                        forced=False):
         model = SentenceTransformer('all-MiniLM-L6-v2')
         clustered_news_all_event_path = Path(self.root, "clustered_news_all_events.csv")
-        cluster_col_name = f"cluster_{min_community_size}_{threshold * 100}"
+        cluster_col_name = f"cluster_{min_community_size}_{str(threshold * 100)}_temporal"
         if clustered_news_all_event_path.exists() and not forced:
             df = pd.read_csv(clustered_news_all_event_path)
             if cluster_col_name in df.columns:
@@ -131,7 +131,10 @@ class EventDeduplicationDataFrame(object):
 
         else:
             df['title'] = df['title'].astype(str)
-            corpus_embeddings = model.encode(df["title"].values, batch_size=batch_size,
+            df['start_date'] = df['start_date'].astype(str)
+            df['temporal_title'] = df['title'] + df['start_date']
+
+            corpus_embeddings = model.encode(df["temporal_title"].values, batch_size=batch_size,
                                                   show_progress_bar=True, convert_to_tensor=True)
             start_time = time.time()
             clusters = util.community_detection(corpus_embeddings,
