@@ -35,9 +35,15 @@ class EventDeduplicationDataFrame(object):
         print(f"Stick replaced dataset - Number of entires: {len(df)}")
         df = df.drop_duplicates(subset='title', keep="last")
         print(f"Dropped duplicates dataset - Number of entires: {len(df)}")
-        df = self.cluster_titles(df, forced=True)
-        df = self.annotate_event_type(df, forced=True)
-        df = self.annotate_entity(df, forced=True)
+        print(f"Denoising dataset with hierarchical clustering...")
+        print(f"")
+        print("    Clustering all news titles with sentence bert...")
+        df = self.cluster_titles(df, forced=False)
+        print("    Annotating event type with a trained event detector on TREC-IS dataset...")
+        df = self.annotate_event_type(df, forced=False)
+        print("    Annotating entities and links to wikidata...")
+        df = self.annotate_entity(df, forced=False)
+        print("    Running temporal 1d DBSCAN to remove similar, but temporally far news titles...")
         df, df_outliers = self.run_temporal_clustering(df, min_samples=3, eps=1, forced=True)
         print(f"Temporally valid dataset - Number of entires: {len(df)}")
         df, df_oos = self.remove_oos_clusters(df, forced=True)
@@ -101,7 +107,7 @@ class EventDeduplicationDataFrame(object):
     def remove_stick_in_title(df):
         title_indicese_with_a_stick = [i for i, title in enumerate(df["title"].values) if "|" in title]
         title_wo_stick = []
-        for title in df.loc[title_indicese_with_a_stick, "title"]:
+        for title in tqdm(df.loc[title_indicese_with_a_stick, "title"]):
             title_parts_len = [len(t) for t in title]
             longest_part_index = title_parts_len.index(max(title_parts_len))
             title_wo_stick.append(title[longest_part_index])
@@ -134,14 +140,14 @@ class EventDeduplicationDataFrame(object):
             print("Clustering done after {:.2f} sec".format(time.time() - start_time))
 
             cluster_col = {}
-            for i, cluster in enumerate(clusters):
+            for i, cluster in tqdm(enumerate(clusters)):
                 cluster_i_dict = {sent_id: i for sent_id in cluster}
                 cluster_col.update(cluster_i_dict)
-                print("\nCluster {}, #{} Elements ".format(i + 1, len(cluster)))
-                cluster_sentences = list(set([df["title"].values[sentence_id] for sentence_id in cluster[0:]]))
-
-                for s in cluster_sentences:
-                    print(f"  {s}")
+                # print("\nCluster {}, #{} Elements ".format(i + 1, len(cluster)))
+                # cluster_sentences = list(set([df["title"].values[sentence_id] for sentence_id in cluster[0:]]))
+                #
+                # for s in cluster_sentences:
+                #     print(f"  {s}")
             df[cluster_col_name] = df.index.to_series().apply(lambda x: cluster_col.get(x, nan))
             df.to_csv(Path(self.root, "clustered_news_all_events.csv"), index=False)
         return df
@@ -154,7 +160,7 @@ class EventDeduplicationDataFrame(object):
             df_removed_outliers = []
             df_outliers = []
 
-            for i, cluster in enumerate(df["cluster_15_75.0"].unique()):
+            for i, cluster in tqdm(enumerate(df["cluster_15_75.0"].unique())):
                 cluster_i = df.loc[df["cluster_15_75.0"] == cluster]
                 cluster_i["normalized_date"] = (cluster_i["start_date"] - min(
                     cluster_i["start_date"])) / np.timedelta64(1, 'D')
@@ -195,7 +201,7 @@ class EventDeduplicationDataFrame(object):
         else:
             df_list = []
             oos_df_list = []
-            for cluster_id in df["cluster_15_75.0"].unique():
+            for cluster_id in tqdm(df["cluster_15_75.0"].unique()):
                 unique_clusters = df.loc[df["cluster_15_75.0"] == cluster_id, "pred_event_type"].unique()
                 if not (len(unique_clusters) == 1 and unique_clusters[0] == 'oos'):
                     df_list.append(df.loc[df["cluster_15_75.0"] == cluster_id])
