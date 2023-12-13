@@ -1,16 +1,7 @@
 import pandas as pd
-import torch
-import numpy as np
 from datasets import Dataset
 from datasets.dataset_dict import DatasetDict
-#from torch.utils.data import Dataset
-from pytorch_lightning.loggers import WandbLogger
-import torch.nn as nn
-import wandb
-from torch.utils.data import DataLoader
-from enum import Enum
-from pytorch_lightning import LightningModule  # , Trainer
-import evaluate
+from sentence_transformers import SentenceTransformer
 from transformers import TrainingArguments, RobertaForSequenceClassification, AutoTokenizer, Trainer, RobertaConfig
 from sklearn.metrics import mean_squared_error
 
@@ -28,14 +19,14 @@ df = pd.read_csv("event_duration_prediction_dataset.csv")
 df["regression_label"] = df["regression_label"].astype(float)
 max_length = df.apply(lambda x: len(x)).max()
 train_df = df.loc[df["event_type"].isin(["Hurricane Florence 2018"
-#						, "Hurricane Sally 2020"
+						, "Hurricane Sally 2020"
 					])]
 valid_df = df.loc[df["event_type"].isin(["Hurricane Laura 2020"
-#						, "Saddleridge Wildfire 2019"
+						, "Saddleridge Wildfire 2019"
 					])]
 test_df = df.loc[df["event_type"].isin(
     ["2018 Maryland Flood"
-#	, "Lilac Wildfire 2017", "Cranston Wildfire 2018", "Holy Wildfire 2018"
+	, "Lilac Wildfire 2017", "Cranston Wildfire 2018", "Holy Wildfire 2018"
 	])]
 
 d = {'train': Dataset.from_dict(
@@ -61,124 +52,11 @@ test_dataset = tokenized_datasets["test"].shuffle(seed=42)
 eval_dataset = tokenized_datasets["validation"].shuffle(seed=42)
 
 
-
-
-'''
-Using this type of dataset always gives
-
-raise KeyError(key) from err
-KeyError: (*an arbitraty number index*)
-
-class EventDurationPredictionDataset(Dataset):
-    event_dict = {"001": "Lilac Wildfire 2017",
-                  "002": "Cranston Wildfire 2018",
-                  "003": "Holy Wildfire 2018",
-                  "004": "Hurricane Florence 2018",
-                  "005": "2018 Maryland Flood",
-                  "006": "Saddleridge Wildfire 2019",
-                  "007": "Hurricane Laura 2020",
-                  "008": "Hurricane Sally 2020"}
-
-    def __init__(self):
-        # load data and shuffle, befor splitting
-        self.df = pd.read_csv("event_duration_prediction_dataset.csv")
-        self.max_lenght = self.df.apply(lambda x: len(x)).max()
-        self.train_df = self.df.loc[self.df["event_type"].isin(["Hurricane Florence 2018" , "Hurricane Sally 2020"])]
-        self.valid_df = self.df.loc[self.df["event_type"].isin(["Hurricane Laura 2020" , "Saddleridge Wildfire 2019"])]
-        self.test_df = self.df.loc[self.df["event_type"].isin(["2018 Maryland Flood" , "Lilac Wildfire 2017", "Cranston Wildfire 2018", "Holy Wildfire 2018"])] 
-
-        self.train = self.train_df["text"]
-        self.val = self.valid_df["text"]
-        self.test = self.test_df["text"]
-
-        self.train_labels = self.train_df["regression_label"]
-        self.val_labels = self.valid_df["regression_label"]
-        self.test_labels = self.test_df["regression_label"]
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        return self.dataset[idx], self.labels[idx]
-
-# Make simple Enum for code clarity
-class DatasetType(Enum):
-    TRAIN = 1
-    TEST = 2
-    VAL = 3
-
-train_dataset = EventDurationPredictionDataset().set_fold(DatasetType.TRAIN)
-test_dataset = EventDurationPredictionDataset().set_fold(DatasetType.TEST)
-eval_dataset = EventDurationPredictionDataset().set_fold(DatasetType.VAL)
-
-'''
-
-#tokenized_datasets = dataset.map(tokenize_function, batched=True)
-
-
-
-
-'''
-
-class TrainerTransformer(LightningModule):
-    def __init__(self, vocab_size):
-        super().__init__()
-        self.model = RobertaForSequenceClassification.from_pretrained("roberta-base",
-                                                                      num_labels=vocab_size)  # .to("cuda")
-
-    def forward(self, inputs, target):
-        return self.model(inputs, target)
-
-
-    def training_step(self, batch, batch_idx):
-        inputs, target = batch
-        output = self(inputs, target)
-        loss = torch.nn.functional.mse_loss(output, target.view(-1))
-        return loss
-
-    def configure_optimizers(self):
-        return torch.optim.SGD(self.model.parameters(), lr=0.1)
-
-
-'''
-
-'''
-model = TrainerTransformer(number_labels)
-wandb_logger = WandbLogger(log_model="all")
-dataloader = DataLoader(train_dataset)
-trainer = Trainer(#logger=wandb_logger,
-                  max_epochs=3)
-trainer.fit(model=model, train_dataloaders=dataloader)
-
-
-config = RobertaConfig(
-    vocab_size=800,
-    problem_type = 'regression',
-    type_vocab_size=1,
-    ignore_mismatched_sizes=True
-)
-
-class regression_model(nn.Module):
-    def __init__(self):
-        super(regression_model, self).__init__()
-        self.bert = RobertaForSequenceClassification.from_pretrained("roberta-base", config =config, ignore_mismatched_sizes=True)#.to("cuda")
-        self.drop = nn.Dropout(p=0.3)
-        self.out = nn.Linear(self.bert.config.hidden_size, 1)
-    
-    def forward(self, input_ids, attention_mask, targets, token_type_ids, text, label):
-        out, _ = self.bert(input_ids, token_type_ids, attention_mask)
-        out = self.dropout(out)
-        loss = nn.MSELoss()
-        output = loss(out, targets)
-        return output
-
-model = regression_model()
-
-'''
 model = RobertaForSequenceClassification.from_pretrained("roberta-base",
                                                             num_labels=1,
                                                             problem_type = 'regression',
-                                                            ignore_mismatched_sizes=True).to("cuda")
+                                                            ignore_mismatched_sizes=True)#.to("cuda")
+
 
 batch_size = 32
 
