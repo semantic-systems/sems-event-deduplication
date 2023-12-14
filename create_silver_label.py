@@ -16,20 +16,40 @@ class EventDeduplicationDataFrame(object):
     def __init__(self, csv_path: str = None):
         self.root = Path("./data/gdelt_crawled/")
         self.aggregated_news_all_event_path = Path(self.root, "aggregated_news_all_events.csv")
-        if not self.aggregated_news_all_event_path.exists():
-            gdelt_news = NaturalDisasterGdelt()
-            gdelt_news.__int__()
-            gdelt_news.aggregate_extracted_news()
+
         if csv_path is None:
-            self.raw_df = pd.read_csv(self.aggregated_news_all_event_path)
+            if not self.aggregated_news_all_event_path.exists():
+                self.aggregate_news()
+            self.df = pd.read_csv(self.aggregated_news_all_event_path)
         else:
-            self.raw_df = pd.read_csv(csv_path)
-        self.nlp = spacy.load("en_core_web_md")
-        self.nlp.add_pipe("entityLinker", last=True)
+            self.df = pd.read_csv(csv_path)
+
+        self.target_df_col = [
+            'cluster_20_60', 'cluster_20_70', 'cluster_20_80', 'cluster_20_90',
+            'cluster_15_60', 'cluster_15_70', 'cluster_15_80', 'cluster_15_90',
+            'cluster_10_60', 'cluster_10_70', 'cluster_10_80', 'cluster_10_90',
+            'cluster_5_60', 'cluster_5_70', 'cluster_5_80', 'cluster_5_90',
+            'temporal_cluster_20_60', 'temporal_cluster_20_70', 'temporal_cluster_20_80', 'temporal_cluster_20_90',
+            'temporal_cluster_15_60', 'temporal_cluster_15_70', 'temporal_cluster_15_80', 'temporal_cluster_15_90',
+            'temporal_cluster_10_60', 'temporal_cluster_10_70', 'temporal_cluster_10_80', 'temporal_cluster_10_90',
+            'temporal_cluster_5_60', 'temporal_cluster_5_70', 'temporal_cluster_5_80', 'temporal_cluster_5_90',
+            'pred_event_type', 'entities']
+
+        self.nlp = self.instantiate_spacy()
+
+    def instantiate_spacy(self):
+        if 'entities' not in self.df.columns:
+            nlp = spacy.load("en_core_web_md")
+            nlp.add_pipe("entityLinker", last=True)
+        else:
+            nlp = None
+        return nlp
 
     def create_silver_label(self):
-        df = self.raw_df
+        df = self.df
         df['title'] = df['title'].astype(str)
+        df['start_date'] = df['start_date'].astype(str)
+
         print(f"Raw dataset - Number of entires: {len(df)}")
         df = self.remove_stick_in_title(df)
         print(f"Stick replaced dataset - Number of entires: {len(df)}")
@@ -37,23 +57,28 @@ class EventDeduplicationDataFrame(object):
         print(f"Dropped duplicates dataset - Number of entires: {len(df)}")
         print(f"Denoising dataset with hierarchical clustering...")
         print(f"")
-        print("    Clustering all news titles with sentence bert...")
-        df = self.cluster_titles(df, forced=True)
         print("    Annotating event type with a trained event detector on TREC-IS dataset...")
         df = self.annotate_event_type(df, forced=False)
         print("    Annotating entities and links to wikidata...")
         df = self.annotate_entity(df, forced=False)
+        print("    Clustering all news titles with sentence bert...")
+        df = self.cluster_titles(df, forced=True)
         print("    Running temporal 1d DBSCAN to remove similar, but temporally far news titles...")
         df, df_outliers = self.run_temporal_clustering(df, min_samples=3, eps=1, forced=True)
         print(f"Temporally valid dataset - Number of entires: {len(df)}")
         df, df_oos = self.remove_oos_clusters(df, forced=True)
         print(f"OOS removed dataset - Number of entires: {len(df)}")
 
+    @staticmethod
+    def aggregate_news():
+        gdelt_news = NaturalDisasterGdelt()
+        gdelt_news.__int__()
+        gdelt_news.aggregate_extracted_news()
+
     def annotate_event_type(self, df, forced=False):
-        if not forced and Path(self.root, "annotated_entity_news_all_events.csv").exists():
+        if not forced and "pred_event_type" in df.columns:
             return df
         else:
-            df["title"] = df['title'].astype(str)
             all_event_types = []
             batch_size = 512
             num_iteration = int(np.ceil(len(df["title"].values) / batch_size))
@@ -69,7 +94,7 @@ class EventDeduplicationDataFrame(object):
             return df
 
     def annotate_entity(self, df, forced=False):
-        if not forced and Path(self.root, "annotated_entity_news_all_events.csv").exists():
+        if not forced and "entities" in df.columns:
             return df
         else:
             df["title"] = df['title'].astype(str)
@@ -114,43 +139,64 @@ class EventDeduplicationDataFrame(object):
         df.loc[title_indicese_with_a_stick, "title"] = title_wo_stick
         return df
 
+    @staticmethod
+    def combine_columns(row):
+        return str(row['title']) + " (" + row['start_date'] + ")"
+
     def cluster_titles(self,
                        df,
                        batch_size: int = 512,
-                       min_community_size: int = 15,
-                       threshold: float = 0.75,
                        forced=False):
         model = SentenceTransformer('all-MiniLM-L6-v2')
-        clustered_news_all_event_path = Path(self.root, "clustered_news_all_events.csv")
-        cluster_col_name = f"cluster_{min_community_size}_{str(threshold * 100)}_temporal"
-        if clustered_news_all_event_path.exists() and not forced:
-            df = pd.read_csv(clustered_news_all_event_path)
-            if cluster_col_name in df.columns:
-                print(f"Clustering with min_community_size ({min_community_size}) "
-                      f"and threshold {threshold} already created.")
+        df['temporal_title'] = df.apply(self.combine_columns, axis=1)
+        cluster_cols = [col for col in self.target_df_col if "cluster" in col and "temporal" not in col]
+        temporal_cluster_cols = [col for col in self.target_df_col if "temporal_cluster" in col]
+        clustering_params = [col for col in cluster_cols if col not in self.df.columns]
+        temporal_clustering_params = [col for col in temporal_cluster_cols if col not in self.df.columns]
 
-        else:
-            df['title'] = df['title'].astype(str)
-            df['start_date'] = df['start_date'].astype(str)
-            df['temporal_title'] = df['title'] + df['start_date']
-
-            corpus_embeddings = model.encode(df["temporal_title"].values, batch_size=batch_size,
-                                                  show_progress_bar=True, convert_to_tensor=True)
+        # cluster titles
+        corpus_embeddings = model.encode(df["title"].values, batch_size=batch_size,
+                                         show_progress_bar=True, convert_to_tensor=True)
+        for params in tqdm(clustering_params):
+            min_community_size = int(params.split("_")[-2])
+            threshold = float(params.split("_")[-1])/100
+            cluster_col_name = f"cluster_{min_community_size}_{str(threshold * 100)[:2]}"
             start_time = time.time()
+            print(f"Start clustering (min_community_size={min_community_size}, threshold={threshold}) ...")
             clusters = util.community_detection(corpus_embeddings,
                                                 min_community_size=min_community_size,
                                                 threshold=threshold)
-            print("Clustering done after {:.2f} sec".format(time.time() - start_time))
+            print(f"Clustering (min_community_size={min_community_size}, threshold={threshold}) done after {time.time()-start_time} sec")
 
             cluster_col = {}
-            for i, cluster in tqdm(enumerate(clusters)):
+            for i, cluster in enumerate(clusters):
                 cluster_i_dict = {sent_id: i for sent_id in cluster}
                 cluster_col.update(cluster_i_dict)
-                # print("\nCluster {}, #{} Elements ".format(i + 1, len(cluster)))
-                # cluster_sentences = list(set([df["title"].values[sentence_id] for sentence_id in cluster[0:]]))
-                #
-                # for s in cluster_sentences:
-                #     print(f"  {s}")
+
+            df[cluster_col_name] = df.index.to_series().apply(lambda x: cluster_col.get(x, nan))
+            df.to_csv(Path(self.root, "clustered_news_all_events.csv"), index=False)
+
+        # temporal cluster titles
+        corpus_embeddings = model.encode(df["temporal_title"].values, batch_size=batch_size,
+                                         show_progress_bar=True, convert_to_tensor=True)
+
+        for params in tqdm(temporal_clustering_params):
+            min_community_size = int(params.split("_")[-2])
+            threshold = float(params.split("_")[-1]) / 100
+            cluster_col_name = f"cluster_{min_community_size}_{str(threshold * 100)[:2]}"
+            start_time = time.time()
+            print(f"Start temporal clustering (min_community_size={min_community_size}, threshold={threshold}) ...")
+            clusters = util.community_detection(corpus_embeddings,
+                                                min_community_size=min_community_size,
+                                                threshold=threshold)
+            print(
+                f"Temporal clustering (min_community_size={min_community_size}, threshold={threshold}) done after {time.time() - start_time} sec")
+
+            cluster_col = {}
+            for i, cluster in enumerate(clusters):
+                cluster_i_dict = {sent_id: i for sent_id in cluster}
+                cluster_col.update(cluster_i_dict)
+
             df[cluster_col_name] = df.index.to_series().apply(lambda x: cluster_col.get(x, nan))
             df.to_csv(Path(self.root, "clustered_news_all_events.csv"), index=False)
         return df
@@ -163,8 +209,8 @@ class EventDeduplicationDataFrame(object):
             df_removed_outliers = []
             df_outliers = []
 
-            for i, cluster in tqdm(enumerate(df["cluster_15_75.0"].unique())):
-                cluster_i = df.loc[df["cluster_15_75.0"] == cluster]
+            for i, cluster in tqdm(enumerate(df["cluster_15_75"].unique())):
+                cluster_i = df.loc[df["cluster_15_75"] == cluster]
                 cluster_i["normalized_date"] = (cluster_i["start_date"] - min(
                     cluster_i["start_date"])) / np.timedelta64(1, 'D')
                 clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(np.reshape(cluster_i["normalized_date"].values, (-1, 1)))
@@ -204,12 +250,12 @@ class EventDeduplicationDataFrame(object):
         else:
             df_list = []
             oos_df_list = []
-            for cluster_id in tqdm(df["cluster_15_75.0"].unique()):
-                unique_clusters = df.loc[df["cluster_15_75.0"] == cluster_id, "pred_event_type"].unique()
+            for cluster_id in tqdm(df["cluster_15_75"].unique()):
+                unique_clusters = df.loc[df["cluster_15_75"] == cluster_id, "pred_event_type"].unique()
                 if not (len(unique_clusters) == 1 and unique_clusters[0] == 'oos'):
-                    df_list.append(df.loc[df["cluster_15_75.0"] == cluster_id])
+                    df_list.append(df.loc[df["cluster_15_75"] == cluster_id])
                 else:
-                    oos_df_list.append(df.loc[df["cluster_15_75.0"] == cluster_id])
+                    oos_df_list.append(df.loc[df["cluster_15_75"] == cluster_id])
             oos_removed_df = pd.concat(df_list, ignore_index=True)
             oos_removed_df.to_csv(Path(self.root, "oos_removed_news.csv"), index=False)
             oos_df = pd.concat(oos_df_list, ignore_index=True)
@@ -250,7 +296,7 @@ class EventDeduplicationDataFrame(object):
 
 if __name__ == "__main__":
     spacy.prefer_gpu()
-    dataset = EventDeduplicationDataFrame()
+    dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/clustered_news_all_events.csv")
     dataset.create_silver_label()
     # dataset.annotate_entity()
 
