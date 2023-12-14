@@ -167,7 +167,9 @@ class EventDeduplicationDataFrame(object):
             print(f"Start clustering (min_community_size={min_community_size}, threshold={threshold}) ...")
             clusters = util.community_detection(corpus_embeddings,
                                                 min_community_size=min_community_size,
-                                                threshold=threshold)
+                                                threshold=threshold,
+                                                batch_size=5120
+                                                )
             print(f"Clustering (min_community_size={min_community_size}, threshold={threshold}) done after {time.time()-start_time} sec")
 
             cluster_col = {}
@@ -190,7 +192,9 @@ class EventDeduplicationDataFrame(object):
             print(f"Start temporal clustering (min_community_size={min_community_size}, threshold={threshold}) ...")
             clusters = util.community_detection(corpus_embeddings,
                                                 min_community_size=min_community_size,
-                                                threshold=threshold)
+                                                threshold=threshold,
+                                                batch_size=5120
+                                                )
             print(
                 f"Temporal clustering (min_community_size={min_community_size}, threshold={threshold}) done after {time.time() - start_time} sec")
 
@@ -298,7 +302,7 @@ class EventDeduplicationDataFrame(object):
 
 if __name__ == "__main__":
     spacy.prefer_gpu()
-    dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/clustered_news_all_events.csv")
+    dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/stormy_events.csv")
     dataset.create_silver_label()
     # dataset.annotate_entity()
 
