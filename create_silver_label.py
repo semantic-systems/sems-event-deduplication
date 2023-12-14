@@ -13,16 +13,18 @@ from event_data_processing import NaturalDisasterGdelt
 
 
 class EventDeduplicationDataFrame(object):
-    def __init__(self, csv_path: str = None):
+    def __init__(self, csv_path: str = None, aggregate_news: bool = False):
         self.root = Path("./data/gdelt_crawled/")
         self.aggregated_news_all_event_path = Path(self.root, "aggregated_news_all_events.csv")
-
-        if csv_path is None:
-            if not self.aggregated_news_all_event_path.exists():
-                self.aggregate_news()
+        if not aggregate_news and csv_path is None and not self.aggregated_news_all_event_path.exists():
+            aggregate_news = True
+        if aggregate_news:
+            self.aggregate_news()
             self.df = pd.read_csv(self.aggregated_news_all_event_path)
-        else:
+        elif csv_path:
             self.df = pd.read_csv(csv_path)
+        else:
+            self.df = pd.read_csv(self.aggregated_news_all_event_path)
 
         self.target_df_col = [
             'cluster_20_60', 'cluster_20_70', 'cluster_20_80', 'cluster_20_90',
