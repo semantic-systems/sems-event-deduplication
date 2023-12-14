@@ -28,12 +28,12 @@ class EventDeduplicationDataFrame(object):
 
         self.target_df_col = [
             'cluster_20_60', 'cluster_20_70', 'cluster_20_80', 'cluster_20_90',
-            'cluster_15_60', 'cluster_15_70', 'cluster_15_80', 'cluster_15_90',
-            'cluster_10_60', 'cluster_10_70', 'cluster_10_80', 'cluster_10_90',
+            'cluster_50_60', 'cluster_50_70', 'cluster_50_80', 'cluster_50_90',
+            'cluster_100_60', 'cluster_100_70', 'cluster_100_80', 'cluster_100_90',
             'cluster_5_60', 'cluster_5_70', 'cluster_5_80', 'cluster_5_90',
             'temporal_cluster_20_60', 'temporal_cluster_20_70', 'temporal_cluster_20_80', 'temporal_cluster_20_90',
-            'temporal_cluster_15_60', 'temporal_cluster_15_70', 'temporal_cluster_15_80', 'temporal_cluster_15_90',
-            'temporal_cluster_10_60', 'temporal_cluster_10_70', 'temporal_cluster_10_80', 'temporal_cluster_10_90',
+            'temporal_cluster_50_60', 'temporal_cluster_50_70', 'temporal_cluster_50_80', 'temporal_cluster_50_90',
+            'temporal_cluster_100_60', 'temporal_cluster_100_70', 'temporal_cluster_100_80', 'temporal_cluster_100_90',
             'temporal_cluster_5_60', 'temporal_cluster_5_70', 'temporal_cluster_5_80', 'temporal_cluster_5_90',
             'pred_event_type', 'entities']
 
@@ -153,8 +153,8 @@ class EventDeduplicationDataFrame(object):
         df['temporal_title'] = df.apply(self.combine_columns, axis=1)
         cluster_cols = [col for col in self.target_df_col if "cluster" in col and "temporal" not in col]
         temporal_cluster_cols = [col for col in self.target_df_col if "temporal_cluster" in col]
-        clustering_params = [col for col in cluster_cols if col not in self.df.columns]
-        temporal_clustering_params = [col for col in temporal_cluster_cols if col not in self.df.columns]
+        clustering_params = [col for col in cluster_cols if col not in df.columns]
+        temporal_clustering_params = [col for col in temporal_cluster_cols if col not in df.columns]
 
         # cluster titles
         corpus_embeddings = model.encode(df["title"].values, batch_size=batch_size,
@@ -211,8 +211,8 @@ class EventDeduplicationDataFrame(object):
             df_removed_outliers = []
             df_outliers = []
 
-            for i, cluster in tqdm(enumerate(df["cluster_15_75"].unique())):
-                cluster_i = df.loc[df["cluster_15_75"] == cluster]
+            for i, cluster in tqdm(enumerate(df["cluster_100_75"].unique())):
+                cluster_i = df.loc[df["cluster_100_75"] == cluster]
                 cluster_i["normalized_date"] = (cluster_i["start_date"] - min(
                     cluster_i["start_date"])) / np.timedelta64(1, 'D')
                 clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(np.reshape(cluster_i["normalized_date"].values, (-1, 1)))
@@ -252,12 +252,12 @@ class EventDeduplicationDataFrame(object):
         else:
             df_list = []
             oos_df_list = []
-            for cluster_id in tqdm(df["cluster_15_75"].unique()):
-                unique_clusters = df.loc[df["cluster_15_75"] == cluster_id, "pred_event_type"].unique()
+            for cluster_id in tqdm(df["cluster_100_75"].unique()):
+                unique_clusters = df.loc[df["cluster_100_75"] == cluster_id, "pred_event_type"].unique()
                 if not (len(unique_clusters) == 1 and unique_clusters[0] == 'oos'):
-                    df_list.append(df.loc[df["cluster_15_75"] == cluster_id])
+                    df_list.append(df.loc[df["cluster_100_75"] == cluster_id])
                 else:
-                    oos_df_list.append(df.loc[df["cluster_15_75"] == cluster_id])
+                    oos_df_list.append(df.loc[df["cluster_100_75"] == cluster_id])
             oos_removed_df = pd.concat(df_list, ignore_index=True)
             oos_removed_df.to_csv(Path(self.root, "oos_removed_news.csv"), index=False)
             oos_df = pd.concat(oos_df_list, ignore_index=True)
