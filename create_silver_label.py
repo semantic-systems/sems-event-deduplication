@@ -1,3 +1,8 @@
+import json
+from collections import Counter
+from datetime import datetime
+from itertools import chain, combinations
+
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -10,6 +15,10 @@ import spacy
 from numpy import nan
 from sklearn.cluster import DBSCAN
 from event_data_processing import NaturalDisasterGdelt
+import warnings
+from pandas.errors import SettingWithCopyWarning
+
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
 
 class EventDeduplicationDataFrame(object):
@@ -64,13 +73,14 @@ class EventDeduplicationDataFrame(object):
         print("    Annotating entities and links to wikidata...")
         df = self.annotate_entity(df, forced=False)
         print("    Clustering all news titles with sentence bert...")
-        df = self.cluster_titles(df, forced=True)
+        # df = self.cluster_titles(df, forced=True)
         print("    Running temporal 1d DBSCAN to remove similar, but temporally far news titles...")
-        df, df_outliers = self.run_temporal_clustering(df, min_samples=3, eps=1, forced=True)
-        print(f"Temporally valid dataset - Number of entires: {len(df)}")
-        df, df_oos = self.remove_oos_clusters(df, forced=True)
+        # df, df_outliers = self.run_temporal_clustering(df, min_samples=3, eps=1, forced=True)
+        # print(f"Temporally valid dataset - Number of entires: {len(df)}")
+        # df, df_oos = self.remove_oos_clusters(df, forced=True)
         print(f"OOS removed dataset - Number of entires: {len(df)}")
-
+        self.clustering_analysis(df, forced=False)
+        self.merge_cluster(df)
     @staticmethod
     def aggregate_news():
         gdelt_news = NaturalDisasterGdelt()
@@ -155,6 +165,8 @@ class EventDeduplicationDataFrame(object):
         temporal_cluster_cols = [col for col in self.target_df_col if "temporal_cluster" in col]
         clustering_params = [col for col in cluster_cols if col not in df.columns]
         temporal_clustering_params = [col for col in temporal_cluster_cols if col not in df.columns]
+        print("clustering_params", clustering_params)
+        print("temporal_clustering_params", temporal_clustering_params)
 
         # cluster titles
         corpus_embeddings = model.encode(df["title"].values, batch_size=batch_size,
@@ -207,7 +219,7 @@ class EventDeduplicationDataFrame(object):
             df.to_csv(Path(self.root, "clustered_news_all_events.csv"), index=False)
         return df
 
-    def run_temporal_clustering(self, df, min_samples=3, eps=1, forced=False):
+    def run_temporal_clustering(self, df, min_samples=3, eps=1, clustering_col="cluster_50_90", forced=False):
         if not forced and Path(self.root, "temporally_denoised_news.csv").exists() and Path(self.root, "temporally_noisy_news.csv").exists():
             return df, None
         else:
@@ -215,32 +227,33 @@ class EventDeduplicationDataFrame(object):
             df_removed_outliers = []
             df_outliers = []
 
-            for i, cluster in tqdm(enumerate(df["cluster_100_75"].unique())):
-                cluster_i = df.loc[df["cluster_100_75"] == cluster]
-                cluster_i["normalized_date"] = (cluster_i["start_date"] - min(
-                    cluster_i["start_date"])) / np.timedelta64(1, 'D')
-                clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(np.reshape(cluster_i["normalized_date"].values, (-1, 1)))
+            for i, cluster in tqdm(enumerate(df[clustering_col].unique())):
+                if not np.isnan(cluster):
+                    cluster_i = df.loc[df[clustering_col] == cluster]
+                    cluster_i["normalized_date"] = (cluster_i["start_date"].values - min(
+                        cluster_i["start_date"].values)) / np.timedelta64(1, 'D')
+                    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(np.reshape(cluster_i["normalized_date"].values, (-1, 1)))
 
-                outlier_indices = np.where(clustering.labels_ == -1)[0]
-                # outlier_dates = cluster_i["start_date"].values[outlier_indices]
-                # outlier_title = cluster_i["title"].values[outlier_indices]
-                # outlier_pred_event_type = cluster_i["pred_event_type"].values[outlier_indices]
-                outlier_df = cluster_i.iloc[outlier_indices, :]
-                df_outliers.append(outlier_df)
+                    outlier_indices = np.where(clustering.labels_ == -1)[0]
+                    # outlier_dates = cluster_i["start_date"].values[outlier_indices]
+                    # outlier_title = cluster_i["title"].values[outlier_indices]
+                    # outlier_pred_event_type = cluster_i["pred_event_type"].values[outlier_indices]
+                    outlier_df = cluster_i.iloc[outlier_indices, :]
+                    df_outliers.append(outlier_df)
 
-                most_populated_cluster = self.most_common(list(clustering.labels_))
-                if most_populated_cluster != -1:
-                    most_populated_cluster_indices = np.where(clustering.labels_ == most_populated_cluster)[0]
-                    # most_populated_cluster_dates = cluster_i["start_date"].values[most_populated_cluster_indices]
-                    # most_populated_cluster_title = cluster_i["title"].values[most_populated_cluster_indices]
-                    # most_populated_cluster_pred_event_type = cluster_i["pred_event_type"].values[
-                    #     most_populated_cluster_indices]
-                    most_popular_cluster_df = cluster_i.iloc[most_populated_cluster_indices, :]
-                    df_removed_outliers.append(most_popular_cluster_df)
+                    most_populated_cluster = self.most_common(list(clustering.labels_))
+                    if most_populated_cluster != -1:
+                        most_populated_cluster_indices = np.where(clustering.labels_ == most_populated_cluster)[0]
+                        # most_populated_cluster_dates = cluster_i["start_date"].values[most_populated_cluster_indices]
+                        # most_populated_cluster_title = cluster_i["title"].values[most_populated_cluster_indices]
+                        # most_populated_cluster_pred_event_type = cluster_i["pred_event_type"].values[
+                        #     most_populated_cluster_indices]
+                        most_popular_cluster_df = cluster_i.iloc[most_populated_cluster_indices, :]
+                        df_removed_outliers.append(most_popular_cluster_df)
 
-                    # print(
-                    #     f"Cluster {cluster}: \n Outlier dates: {outlier_dates}\n Outlier title: {outlier_title}\n Outlier pred_event_type: {outlier_pred_event_type} \n most popular cluster: {most_populated_cluster}\n most popular cluster dates: {most_populated_cluster_dates}\n most popular cluster title: {most_populated_cluster_title}\n most popular cluster pred_event_type: {most_populated_cluster_pred_event_type}\n\n")
-            df_removed_outliers = pd.concat(df_removed_outliers, ignore_index=True)
+                        # print(
+                        #     f"Cluster {cluster}: \n Outlier dates: {outlier_dates}\n Outlier title: {outlier_title}\n Outlier pred_event_type: {outlier_pred_event_type} \n most popular cluster: {most_populated_cluster}\n most popular cluster dates: {most_populated_cluster_dates}\n most popular cluster title: {most_populated_cluster_title}\n most popular cluster pred_event_type: {most_populated_cluster_pred_event_type}\n\n")
+            df_removed_outliers = pd.concat(df_removed_outliers, ignore_index=True) if df_removed_outliers else None
             df_outliers = pd.concat(df_outliers, ignore_index=True)
             df_removed_outliers.to_csv(Path(self.root, "temporally_denoised_news.csv"), index=False)
             df_outliers.to_csv(Path(self.root, "temporally_noisy_news.csv"), index=False)
@@ -250,59 +263,195 @@ class EventDeduplicationDataFrame(object):
     def most_common(lst):
         return max(set(lst), key=lst.count)
 
-    def remove_oos_clusters(self, df, forced=False):
+    def remove_oos_clusters(self, df, clustering_col="cluster_50_90", forced=False):
         if not forced and Path(self.root, "oos_removed_news.csv").exists() and Path(self.root, "oos_news.csv").exists():
             return df
         else:
             df_list = []
             oos_df_list = []
-            for cluster_id in tqdm(df["cluster_100_75"].unique()):
-                unique_clusters = df.loc[df["cluster_100_75"] == cluster_id, "pred_event_type"].unique()
+            for cluster_id in tqdm(df[clustering_col].unique()):
+                unique_clusters = df.loc[df[clustering_col] == cluster_id, "pred_event_type"].unique()
                 if not (len(unique_clusters) == 1 and unique_clusters[0] == 'oos'):
-                    df_list.append(df.loc[df["cluster_100_75"] == cluster_id])
+                    df_list.append(df.loc[df[clustering_col] == cluster_id])
                 else:
-                    oos_df_list.append(df.loc[df["cluster_100_75"] == cluster_id])
+                    oos_df_list.append(df.loc[df[clustering_col] == cluster_id])
             oos_removed_df = pd.concat(df_list, ignore_index=True)
             oos_removed_df.to_csv(Path(self.root, "oos_removed_news.csv"), index=False)
-            oos_df = pd.concat(oos_df_list, ignore_index=True)
-            oos_df.to_csv(Path(self.root, "oos_news.csv"), index=False)
+            if oos_df_list:
+                oos_df = pd.concat(oos_df_list, ignore_index=True)
+                oos_df.to_csv(Path(self.root, "oos_news.csv"), index=False)
+            else:
+                oos_df = None
             return oos_removed_df, oos_df
 
-    def compare_predicted_event_type_with_gdelt_keyword(self):
-        of_interest_predicted_event_type = ["tropical_storm", "flood"]
-        pass
+    def clustering_analysis(self, df, forced=False):
+        if not forced:
+            return df
+        else:
+            clustering_col = ["cluster_50_70"]#self.target_df_col[:12]
+            dfs = []
+            dfs_outlier = []
+            dfs_oos_removed = []
+            dfs_oos = []
+            for col in clustering_col:
+                df_outlier_removed, df_outlier = self.run_temporal_clustering(df, clustering_col=col, forced=True)
+                dfs.append(df_outlier_removed)
+                dfs_outlier.append(df_outlier)
+                oos_removed_df, oos_df = self.remove_oos_clusters(df_outlier_removed, clustering_col=col, forced=True)
+                dfs_oos_removed.append(oos_removed_df)
+                dfs_oos.append(oos_df)
 
-    def compare_time(self):
-        pass
+            final_df = []
+            for cluster in df_outlier_removed[clustering_col[0]].unique():
+                cluster_df = df_outlier_removed.loc[df_outlier_removed['cluster_50_70'] == cluster]
+                try:
+                    most_common_event_type = cluster_df['pred_event_type'].value_counts().index[0]
+                except IndexError:
+                    most_common_event_type = "oos"
+                if most_common_event_type in ["tropical_storm", "flood"]:
+                    final_df.append(cluster_df)
+            final_df = pd.concat(final_df, ignore_index=True) if final_df else None
+            final_df.to_csv(Path(self.root, "final_df.csv"), index=False)
+            print(f"Final df: {len(final_df)}")
+            print(f"Unique clusters: {len(final_df[clustering_col[0]].unique())}")
 
-    def compare_location(self):
-        pass
+    def merge_cluster(self, df):
+        cluster_linked_entity_maps = {}
+        cluster_entity_maps = {}
+        cluster_event_type_maps = {}
+        cluster_timestamp_map = {}
+        cluster_gpe_maps = {}
+        df["cluster_50_70"] = df["cluster_50_70"].astype("string")
+        for i, cluster in enumerate(df["cluster_50_70"].unique()):
+            cluster_i = df.loc[df["cluster_50_70"] == cluster]
+            linked_entity_mentions = []
+            entity_mentions = []
+            gpe_mentions = []
+            for index, instance in cluster_i.iterrows():
+                entity = instance["entities"]
+                if "\\xa0" in entity:
+                    entity = entity.replace('\\xa0', ' ')
+                entities = json.loads(entity.replace("'", '"'))
+                linked_entity_mentions.extend(list(entities["linked_entitiy"].keys()))
+                entity_mentions.extend(list(entities["entity_type"].keys()))
+                gpe_mentions.extend(
+                    [entity for entity, entity_type in entities["entity_type"].items() if entity_type == "GPE"])
 
-    def compare_entities(self):
-        pass
+            cluster_linked_entity_maps[cluster] = dict(Counter(linked_entity_mentions))
+            cluster_entity_maps[cluster] = dict(Counter(entity_mentions))
+            cluster_event_type_maps[cluster] = dict(cluster_i["pred_event_type"].value_counts())
+            cluster_timestamp_map[cluster] = dict(cluster_i["start_date"].value_counts())
+            cluster_gpe_maps[cluster] = dict(Counter(gpe_mentions))
 
-    def merge_cluster(self):
-        pass
+        self.filtered_cluster_entity_maps = self.filter_cluster_entity(cluster_entity_maps)
 
-    def remove_cluster(self):
-        pass
+        df_merged = df
 
-    def remove_instance_from_cluster(self):
-        pass
+        cluster_id = list(self.filtered_cluster_entity_maps.keys())
+        index_combinations = list(combinations(cluster_id, 2))
 
-    def link_cluster_to_wikidata_events(self):
-        ## check for event dates
-        ## check for location
-        ## check for entity
-        pass
-    
-    def evaluate_on_trec_is(self):
-        pass
+        similarities = list(map(self.compare_list_of_strings, index_combinations))
+        similarity_cluster_dict = dict(zip(index_combinations, similarities))
+        temporal_similarity_cluster_dict = {}
+        merged_clusters = []
+        for i, (clusters, value) in enumerate(similarity_cluster_dict.items()):
+            min_1 = datetime.strptime(
+                min(df_merged.loc[df_merged['cluster_50_70'] == clusters[0]]['start_date'].values), "%Y-%m-%d")
+            max_1 = datetime.strptime(
+                max(df_merged.loc[df_merged['cluster_50_70'] == clusters[0]]['start_date'].values), "%Y-%m-%d")
+            min_2 = datetime.strptime(
+                min(df_merged.loc[df_merged['cluster_50_70'] == clusters[1]]['start_date'].values), "%Y-%m-%d")
+            max_2 = datetime.strptime(
+                max(df_merged.loc[df_merged['cluster_50_70'] == clusters[1]]['start_date'].values), "%Y-%m-%d")
+
+            a_within_b = min_2 <= min_1 <= max_2 and min_2 <= max_1 <= max_2
+            b_within_a = min_1 <= min_2 <= max_1 and min_1 <= max_2 <= max_1
+            a_overlaps_b = (min_1 <= min_2 <= max_1 <= max_2) or (min_2 <= min_1 <= max_2 <= max_1)
+            b_overlaps_a = (min_2 <= min_1 <= max_2 <= max_1) or (min_1 <= min_2 <= max_1 <= max_2)
+            if a_within_b or b_within_a or a_overlaps_b or b_overlaps_a:
+                cluster_distance = 0
+            elif max_1 <= min_2:
+                cluster_distance = self.day_difference(max_1, min_2)
+            else:
+                cluster_distance = self.day_difference(min_1, max_2)
+
+            temporal_similarity_cluster_dict[clusters] = cluster_distance
+            if cluster_distance <= 10:
+                if value >= 0.5:
+                    merged_clusters.append(list(clusters))
+
+        cluster_combinations = list(combinations(merged_clusters, 2))
+        updated_clusters = []
+
+        for i, clusters in enumerate(cluster_combinations):
+            if self.cluster_has_overlap(clusters[0], clusters[1]):
+                merge = False
+                merge_index = 0
+                if i == 0:
+                    updated_clusters.append(list(chain(*clusters)))
+                else:
+                    for cluster_pair in clusters:
+                        for c in cluster_pair:
+                            for i, updated_cluster in enumerate(updated_clusters):
+                                if c in updated_cluster:
+                                    merge = True
+                                    merge_index = i
+                    if merge:
+                        updated_clusters[merge_index].extend(list(chain(*clusters)))
+                    else:
+                        updated_clusters.append(list(chain(*clusters)))
+
+        clusters_to_merge = [list(set(c)) for c in updated_clusters]
+        cluster_col = df_merged["cluster_50_70"]
+        for i, cluster in enumerate(clusters_to_merge):
+            cluster_col = cluster_col.replace([str(c) for c in cluster[1:]], str(cluster[0]))
+
+        df_merged["new_cluster"] = cluster_col.values
+        df_merged.to_csv("./data/gdelt_crawled/final_df_v1.csv", index=False)
+
+    @staticmethod
+    def filter_cluster_entity(cluster_entity_maps):
+        cluster_entity = {}
+        for c, entities in cluster_entity_maps.items():
+            tmp_dict = {}
+            for entity, count in entities.items():
+                if count > 4:
+                    tmp_dict[entity] = count
+            cluster_entity[c] = tmp_dict
+        return cluster_entity
+
+    def compare_list_of_strings(self, tuple_of_str):
+        list_1 = self.filtered_cluster_entity_maps[tuple_of_str[0]]
+        list_2 = self.filtered_cluster_entity_maps[tuple_of_str[1]]
+        try:
+            return len(set(list_1).intersection(set(list_2))) / max(len(list_1), len(list_2))
+        except ZeroDivisionError:
+            return 0
+
+    @staticmethod
+    def day_difference(d1, d2):
+        delta = d2 - d1
+        return abs(delta.days)
+
+    @staticmethod
+    def cluster_has_overlap(c1, c2):
+        intersection = list(set(c1).intersection(set(c2)))
+        return len(intersection) > 0
+
 
 
 if __name__ == "__main__":
     spacy.prefer_gpu()
-    dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/stormy_events.csv")
+    dataset = EventDeduplicationDataFrame("./data/gdelt_crawled/clustered_news_stormy_events.csv")
     dataset.create_silver_label()
     # dataset.annotate_entity()
+    a = ["Mawar", "Biparjoy", "Tauktae", "Eloise", "Sitrang", "Gabrielle", "European floods (2021-07-16)", "Elsa",
+         "Nalgae", "Batsirai", "Mocha", "Khanun", "Freddy", "Yaas", "Shaheen", "Mocha", "Cyclone Batters Covid/Tauktae",
+         "Tauktae","Jawad", "Rai", "Texas storm", "Freddy", "Nanmadol", "Texas storm",
+         "Tennessee flood", "Ana", "Kentucky Tornadoes", "Ana", "", "","", "", "", "", "", "",
+         "", "", "", "", "", "","", "", "", "", "", "",
+         "", "", "", "", "", "","", "", "", "", "", ""]
+
+
+
 

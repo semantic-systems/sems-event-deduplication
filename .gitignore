@@ -1,3 +1,4 @@
+models/outputs/
 *.csv
 *.ipynb
 data/gdelt_crawled/
