@@ -10,14 +10,14 @@ class StormyDataset(torch.utils.data.Dataset):
     def __init__(self, csv_path, label_pkl=None):
         self.df = pd.read_csv(csv_path)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
-        self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))[:500]
+        self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
         self.get_descriptions()
         if label_pkl is not None:
             with open(label_pkl, "rb") as fp:
-                self.labels = pickle.load(fp)[:500]
+                self.labels = pickle.load(fp)
                 self.labels = [self.label2int[label] for label in self.labels]
         else:
-            self.labels = list(map(self.get_label, self.sentence_pairs_indices[:500]))
+            self.labels = list(map(self.get_label, self.sentence_pairs_indices))
             self.labels = [self.label2int[label] for label in self.labels]
 
     def get_label(self, index_tuple):

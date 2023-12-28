@@ -18,6 +18,7 @@ class EventPairwiseTemporalityModel(object):
                  label_pkl: Path = Path("../data/gdelt_crawled/labels.pkl"),
                  transformer_model: str = 'distilbert-base-uncased'):
         self.prepare_environment()
+        batch_size = 1024
         word_embedding_model = models.Transformer(transformer_model, max_seq_length=256)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
         dense_model = models.Dense(in_features=pooling_model.get_sentence_embedding_dimension(), out_features=256, activation_function=nn.Tanh())
@@ -33,9 +34,9 @@ class EventPairwiseTemporalityModel(object):
         training_dataset = SentencesDataset(training_data, self.model)
         validation_dataset = SentencesDataset(validation_data, self.model)
         testing_dataset = SentencesDataset(testing_data, self.model)
-        self.training_dataloader = DataLoader(training_dataset, shuffle=True, batch_size=32)
-        self.validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=32)
-        self.testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=32)
+        self.training_dataloader = DataLoader(training_dataset, shuffle=True, batch_size=batch_size)
+        self.validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=batch_size)
+        self.testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=batch_size)
         self.validation_evaluator = LabelAccuracyEvaluator(self.validation_dataloader, name='validation', softmax_model=self.train_loss)
         self.testing_evaluator = LabelAccuracyEvaluator(self.testing_dataloader, name='test', softmax_model=self.train_loss)
 
@@ -61,7 +62,7 @@ class EventPairwiseTemporalityModel(object):
         self.model.fit(train_objectives=[(self.training_dataloader, self.train_loss)],
                        evaluator=self.validation_evaluator,
                        epochs=num_epochs,
-                       evaluation_steps=100,
+                       evaluation_steps=10000,
                        warmup_steps=warmup_steps,
                        output_path="./outputs",
                        show_progress_bar=True
