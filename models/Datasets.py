@@ -34,10 +34,8 @@ class StormyDataset(torch.utils.data.Dataset):
                 label = "earlier"
             elif unix_time_i == unix_time_j:
                 label = "same_date"
-            elif unix_time_i > unix_time_j:
-                label = "later"
             else:
-                label = "whatisthisshit?"
+                label = "later"
             return label
 
     def get_descriptions(self):
@@ -54,6 +52,12 @@ class StormyDataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    csv_path = Path("../data/gdelt_crawled/final_df_v1.csv")
-    data = StormyDataset(Path("../data/gdelt_crawled/final_df_v1.csv"), label_pkl=Path("../data/gdelt_crawled/labels.pkl"))
-    print(data.get_descriptions())
+    train_csv_path = Path("../data/gdelt_crawled/train_v1.csv")
+    valid_csv_path = Path("../data/gdelt_crawled/valid_v1.csv")
+    test_csv_path = Path("../data/gdelt_crawled/test_v1.csv")
+    train = StormyDataset(train_csv_path, label_pkl=Path("../data/gdelt_crawled/labels_train.pkl"))
+    valid = StormyDataset(valid_csv_path, label_pkl=Path("../data/gdelt_crawled/labels_valid.pkl"))
+    test = StormyDataset(test_csv_path, label_pkl=Path("../data/gdelt_crawled/labels_test.pkl"))
+    print(f"Training data \n {train.get_descriptions()}\n")
+    print(f"Validation data \n {valid.get_descriptions()}\n")
+    print(f"Testing data \n {test.get_descriptions()}\n")
