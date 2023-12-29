@@ -6,19 +6,18 @@ import torch.cuda
 from torch import nn
 from sentence_transformers import SentenceTransformer, SentencesDataset, losses, models, InputExample
 from torch.utils.data import DataLoader
-import pickle
-from models.Datasets import StormyDataset
+from Datasets import StormyDataset
 from sklearn.model_selection import train_test_split
 from sentence_transformers.evaluation import LabelAccuracyEvaluator
 
 
 class EventPairwiseTemporalityModel(object):
     def __init__(self,
-                 csv_path: Path = Path("../data/gdelt_crawled/final_df_v1.csv"),
-                 label_pkl: Path = Path("../data/gdelt_crawled/labels.pkl"),
+                 csv_path: Path = Path("./data/gdelt_crawled/final_df_v1.csv"),
+                 label_pkl: Path = Path("./data/gdelt_crawled/labels.pkl"),
                  transformer_model: str = 'distilbert-base-uncased'):
         self.prepare_environment()
-        batch_size = 1024
+        batch_size = 700
         word_embedding_model = models.Transformer(transformer_model, max_seq_length=256)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
         dense_model = models.Dense(in_features=pooling_model.get_sentence_embedding_dimension(), out_features=256, activation_function=nn.Tanh())
@@ -47,22 +46,22 @@ class EventPairwiseTemporalityModel(object):
         titles = data.df["title"].values
         train_examples = [InputExample(texts=[titles[data.sentence_pairs_indices[i][0]], titles[data.sentence_pairs_indices[i][1]]],
                                        label=labels[i]) for i in range(len(data))]
-        training_data, testing_data = train_test_split(train_examples, test_size=0.30, random_state=42)
-        validation_data, testing_data = train_test_split(testing_data, test_size=0.50, random_state=42)
+        training_data, testing_data = train_test_split(train_examples, test_size=0.05, random_state=42)
+        validation_data, testing_data = train_test_split(testing_data, test_size=0.30, random_state=42)
         return training_data, validation_data, testing_data
 
     def train(self):
         # Configure the training
-        num_epochs = 3
+        num_epochs = 1
 
-        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.1)  # 10% of train data for warm-up
+        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.01)  # 10% of train data for warm-up
         logging.info("Warmup-steps: {}".format(warmup_steps))
 
         # Train the model
         self.model.fit(train_objectives=[(self.training_dataloader, self.train_loss)],
                        evaluator=self.validation_evaluator,
                        epochs=num_epochs,
-                       evaluation_steps=10000,
+                       evaluation_steps=5000,
                        warmup_steps=warmup_steps,
                        output_path="./outputs",
                        show_progress_bar=True
