@@ -100,7 +100,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 
     def get_descriptions(self):
         print(f"The dataset csv has {len(self.df)} entries with the following columns - {self.df.columns.values}")
-        print(f"     Number of clusters - {len(self.df.new_cluster.unique())}")
+        print(f"     Number of clusters - {len(self.df.event.unique())}")
         print(f"     Number of combinations over sentence pairs - {len(self.sentence_pairs_indices)}")
 
     def __getitem__(self, idx):
