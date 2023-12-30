@@ -62,6 +62,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
     def __init__(self, csv_path, label_pkl=None, subset: float = 1.0):
         random.seed(4)
         self.df = pd.read_csv(csv_path)
+        self.df.rename({'text': 'title'}, axis=1, inplace=True)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
         self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
         self.end_index = round(subset * len(self.sentence_pairs_indices))
@@ -105,7 +106,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         i, j = self.sentence_pairs_indices[idx]
-        return (self.df.text.values[i], self.df.text.values[j]), self.labels[idx]
+        return (self.df.title.values[i], self.df.title.values[j]), self.labels[idx]
 
     def __len__(self):
         return len(self.sentence_pairs_indices)

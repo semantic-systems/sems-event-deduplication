@@ -70,7 +70,7 @@ class EventPairwiseTemporalityModel(object):
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
                                                  test_titles[test.sentence_pairs_indices[i][1]]],
                                           label=test_labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts): {len(test_examples)} pairs of sentences")
+            logger.info(f"Test: {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/test_from_crisisfacts.csv")
             test = CrisisFactsDataset(test_csv_path, label_pkl=None, subset=self.subset)
