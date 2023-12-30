@@ -105,7 +105,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         i, j = self.sentence_pairs_indices[idx]
-        return (self.df.title.values[i], self.df.title.values[j]), self.labels[idx]
+        return (self.df.text.values[i], self.df.text.values[j]), self.labels[idx]
 
     def __len__(self):
         return len(self.sentence_pairs_indices)
