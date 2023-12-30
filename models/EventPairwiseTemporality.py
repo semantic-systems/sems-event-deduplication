@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from Datasets import StormyDataset
 from EventPairwiseTemporalityEvaluator import EventPairwiseTemporalityEvaluator
 
-
+logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.INFO)
 
@@ -122,6 +122,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=32, exp_name="v1", transformer_model='distilbert-base-uncased', subset=0.0001)
+    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v1", transformer_model='distilbert-base-uncased', subset=1)
     model.train()
     model.test()

@@ -17,9 +17,9 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
     def __init__(self, dataloader: DataLoader, name: str = "", softmax_model=None, write_csv: bool = True):
         super().__init__(dataloader, name, softmax_model, write_csv)
         self.csv_file = "evaluation_"+name+"_results.csv"
-        self.csv_headers = ["epoch", "steps", "accuracy", "macro_precision", "macro_recall", "macro_f1", "macro_support",
-                                     "micro_precision", "micro_recall",  "micro_f1", "micro_support",
-                                     "weighted_precision", "weighted_recall", "weighted_f1", "weighted_support"]
+        self.csv_headers = ["epoch", "steps", "accuracy", "macro_precision", "macro_recall", "macro_f1",
+                                     "micro_precision", "micro_recall",  "micro_f1",
+                                     "weighted_precision", "weighted_recall", "weighted_f1"]
 
     def __call__(self, model, output_path: str = None, epoch: int = -1, steps: int = -1) -> float:
         model.eval()
@@ -47,14 +47,14 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
             label_ids = label_ids.to(model.device)
             with torch.no_grad():
                 _, prediction = self.softmax_model(features, labels=None)
-            y_predict.append(torch.argmax(prediction, dim=1))
+            y_predict.append(torch.argmax(prediction, dim=1).detach().cpu().numpy())
             total += prediction.size(0)
             correct += torch.argmax(prediction, dim=1).eq(label_ids).sum().item()
         y_true = np.concatenate(y_true)
         y_predict = np.concatenate(y_predict)
-        macro_precision, macro_recall, macro_f1, macro_support = precision_recall_fscore_support(y_true, y_predict, average='macro')
-        micro_precision, micro_recall, micro_f1, micro_support = precision_recall_fscore_support(y_true, y_predict, average='micro')
-        weighted_precision, weighted_recall, weighted_f1, weighted_support = precision_recall_fscore_support(y_true, y_predict, average='weighted')
+        macro_precision, macro_recall, macro_f1, _ = precision_recall_fscore_support(y_true, y_predict, average='macro', zero_division=0)
+        micro_precision, micro_recall, micro_f1, _ = precision_recall_fscore_support(y_true, y_predict, average='micro', zero_division=0)
+        weighted_precision, weighted_recall, weighted_f1, _ = precision_recall_fscore_support(y_true, y_predict, average='weighted', zero_division=0)
         accuracy = correct/total
 
         logger.info("Accuracy: {:.4f} ({}/{})\n".format(accuracy, correct, total))
@@ -62,17 +62,14 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
         logger.info(f"    precision: {macro_precision}")
         logger.info(f"    recall: {macro_recall}")
         logger.info(f"    f1: {macro_f1}")
-        logger.info(f"    support: {macro_support}")
         logger.info(f"Micro metrics:")
         logger.info(f"    precision: {micro_precision}")
         logger.info(f"    recall: {micro_recall}")
         logger.info(f"    f1: {micro_f1}")
-        logger.info(f"    support: {micro_support}")
         logger.info(f"Weighted metrics:")
         logger.info(f"    precision: {weighted_precision}")
         logger.info(f"    recall: {weighted_recall}")
         logger.info(f"    f1: {weighted_f1}")
-        logger.info(f"    support: {weighted_support}")
 
         if output_path is not None and self.write_csv:
             csv_path = os.path.join(output_path, self.csv_file)
@@ -83,14 +80,14 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
                 with open(csv_path, newline='', mode="w", encoding="utf-8") as f:
                     writer = csv.writer(f)
                     writer.writerow(self.csv_headers)
-                    writer.writerow([epoch, steps, accuracy, macro_precision, macro_recall, macro_f1, macro_support,
-                                     micro_precision, micro_recall,  micro_f1, micro_support,
-                                     weighted_precision, weighted_recall, weighted_f1, weighted_support])
+                    writer.writerow([epoch, steps, accuracy, macro_precision, macro_recall, macro_f1,
+                                     micro_precision, micro_recall,  micro_f1,
+                                     weighted_precision, weighted_recall, weighted_f1])
             else:
                 with open(csv_path, newline='', mode="a", encoding="utf-8") as f:
                     writer = csv.writer(f)
-                    writer.writerow([epoch, steps, accuracy, macro_precision, macro_recall, macro_f1, macro_support,
-                                     micro_precision, micro_recall,  micro_f1, micro_support,
-                                     weighted_precision, weighted_recall, weighted_f1, weighted_support])
+                    writer.writerow([epoch, steps, accuracy, macro_precision, macro_recall, macro_f1,
+                                     micro_precision, micro_recall,  micro_f1,
+                                     weighted_precision, weighted_recall, weighted_f1])
 
         return accuracy
