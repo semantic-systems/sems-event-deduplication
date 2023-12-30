@@ -4,21 +4,28 @@ from pathlib import Path
 from torch.utils.data import Dataset
 from itertools import combinations
 import pickle
+import random
 
 
 class StormyDataset(torch.utils.data.Dataset):
-    def __init__(self, csv_path, label_pkl=None):
+    def __init__(self, csv_path, label_pkl=None, subset: float = 1.0):
+        random.seed(4)
         self.df = pd.read_csv(csv_path)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
         self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
+        self.end_index = round(subset * len(self.sentence_pairs_indices))
+        self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
+        random.shuffle(self.sentence_pairs_indices)
         self.get_descriptions()
         if label_pkl is not None:
             with open(label_pkl, "rb") as fp:
                 self.labels = pickle.load(fp)
                 self.labels = [self.label2int[label] for label in self.labels]
+                random.shuffle(self.labels)
         else:
             self.labels = list(map(self.get_label, self.sentence_pairs_indices))
             self.labels = [self.label2int[label] for label in self.labels]
+            random.shuffle(self.labels)
 
     def get_label(self, index_tuple):
         clusters = self.df.new_cluster.values
