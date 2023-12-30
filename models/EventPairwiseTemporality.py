@@ -6,7 +6,7 @@ import torch.cuda
 from torch import nn
 from sentence_transformers import SentenceTransformer, SentencesDataset, losses, models, InputExample
 from torch.utils.data import DataLoader
-from Datasets import StormyDataset
+from Datasets import StormyDataset, CrisisFactsDataset
 from EventPairwiseTemporalityEvaluator import EventPairwiseTemporalityEvaluator
 
 logging.basicConfig(level=logging.NOTSET)
@@ -63,9 +63,8 @@ class EventPairwiseTemporalityModel(object):
 
             return train_examples, valid_examples
         else:
-            test_csv_path = Path("./data/gdelt_crawled/test_v1.csv")
-            test = StormyDataset(test_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_test.pkl"),
-                                 subset=self.subset)
+            test_csv_path = Path("./data/test_from_crisisfacts.csv")
+            test = CrisisFactsDataset(test_csv_path, label_pkl=None, subset=self.subset)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -97,12 +96,22 @@ class EventPairwiseTemporalityModel(object):
                       )
 
     def test(self):
-        logger.info(f"Testing...")
+        logger.info(f"Testing on curated test set.")
         testing_data = self.prepare_data(test=True)
         testing_dataset = SentencesDataset(testing_data, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader, name='test_' + self.exp_name,
                                                                    softmax_model=self.train_loss)
+
+        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name)))
+
+
+        logger.info(f"Testing on Crisisfacts test set.")
+        testing_data = self.prepare_data(test=True)
+        testing_dataset = SentencesDataset(testing_data, self.model)
+        testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
+        testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader, name='test_crisisfacts_' + self.exp_name,
+                                                              softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name)))
 
