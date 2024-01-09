@@ -51,7 +51,8 @@ class EventPairwiseTemporalityModel(object):
                                   sample_indices_path=Path("./data/gdelt_crawled/sample_indices.json"),
                                   subset=self.subset)
             valid = StormyDataset(valid_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_valid.pkl"),
-                                  sample_indices_path=None, subset=self.subset)
+                                  sample_indices_path=Path("./data/gdelt_crawled/sample_indices_valid.json"),
+                                  subset=self.subset)
             train_labels = train.labels
             train_titles = train.df["title"].values
             valid_labels = valid.labels
