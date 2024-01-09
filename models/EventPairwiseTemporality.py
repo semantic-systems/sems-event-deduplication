@@ -26,7 +26,8 @@ class EventPairwiseTemporalityModel(object):
         self.batch_size = batch_size
         word_embedding_model = models.Transformer(transformer_model, max_seq_length=256)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
-        dense_model = models.Dense(in_features=pooling_model.get_sentence_embedding_dimension(), out_features=256, activation_function=nn.Tanh())
+        dense_model = models.Dense(in_features=pooling_model.get_sentence_embedding_dimension(),
+                                   out_features=256, activation_function=nn.Tanh())
 
         self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model], device=self.device)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
@@ -46,8 +47,11 @@ class EventPairwiseTemporalityModel(object):
         if not test:
             train_csv_path = Path("./data/gdelt_crawled/train_v1.csv")
             valid_csv_path = Path("./data/gdelt_crawled/valid_v1.csv")
-            train = StormyDataset(train_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_train.pkl"), subset=self.subset)
-            valid = StormyDataset(valid_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_valid.pkl"), subset=self.subset)
+            train = StormyDataset(train_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_train.pkl"),
+                                  sample_indices_path=Path("./data/gdelt_crawled/sample_indices.json"),
+                                  subset=self.subset)
+            valid = StormyDataset(valid_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_valid.pkl"),
+                                  sample_indices_path=None, subset=self.subset)
             train_labels = train.labels
             train_titles = train.df["title"].values
             valid_labels = valid.labels
@@ -86,7 +90,7 @@ class EventPairwiseTemporalityModel(object):
         # Configure the training
         num_epochs = 2
 
-        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.05)  # 5% of train data for warm-up
+        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.1)  # 10% of train data for warm-up
         logger.info(f"Warmup-steps: {warmup_steps}")
         logger.info(f"Number of epochs: {num_epochs}")
         logger.info(f"Output path: {str(Path('./outputs', self.exp_name))}")
@@ -97,7 +101,7 @@ class EventPairwiseTemporalityModel(object):
         self.model.fit(train_objectives=[(self.training_dataloader, self.train_loss)],
                        evaluator=self.validation_evaluator,
                        epochs=num_epochs,
-                       evaluation_steps=5000,
+                       evaluation_steps=10000,
                        warmup_steps=warmup_steps,
                        output_path=str(Path("./outputs", self.exp_name)),
                        show_progress_bar=True,
@@ -139,6 +143,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v1", transformer_model='distilbert-base-uncased', subset=0.0001)
+    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v2", transformer_model='distilbert-base-uncased', subset=1)
     model.train()
     model.test()
