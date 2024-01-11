@@ -1,5 +1,7 @@
 import json
+from collections import Counter
 
+import numpy as np
 import pandas as pd
 import torch
 from pathlib import Path
@@ -14,36 +16,56 @@ class StormyDataset(torch.utils.data.Dataset):
         random.seed(4)
         self.df = pd.read_csv(csv_path)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
+        if label_pkl is not None:
+            with open(label_pkl, "rb") as fp:
+                self.labels = pickle.load(fp)
+        else:
+            self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
+            self.labels = list(map(self.get_label, self.sentence_pairs_indices))
+        self.sample_indices = self.get_sample_indices(self.labels, sample_indices_path)
+        self.labels = self.get_balanced_labels(sample_indices_path)
+        self.labels = [self.label2int[label] for label in self.labels]
+        random.shuffle(self.labels)
+
         self.sentence_pairs_indices = self.get_sentence_pairs_indices(sample_indices_path=sample_indices_path)
         self.end_index = round(subset * len(self.sentence_pairs_indices))
         self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
         random.shuffle(self.sentence_pairs_indices)
+
         self.get_descriptions()
-        if label_pkl is not None:
-            with open(label_pkl, "rb") as fp:
-                self.labels = pickle.load(fp)
-                if sample_indices_path and Path(sample_indices_path).exists():
-                    self.labels = self.get_balanced_labels(sample_indices_path)
-                self.labels = [self.label2int[label] for label in self.labels]
-                random.shuffle(self.labels)
-        else:
-            self.labels = list(map(self.get_label, self.sentence_pairs_indices))
-            if sample_indices_path and Path(sample_indices_path).exists():
-                self.labels = self.get_balanced_labels(sample_indices_path)
-            self.labels = [self.label2int[label] for label in self.labels]
-            random.shuffle(self.labels)
 
     def get_sentence_pairs_indices(self, sample_indices_path: str = None):
-        all_combinations = list(combinations(range(len(self.df)), 2))
         if not sample_indices_path:
-            return all_combinations
+            return self.sentence_pairs_indices
         elif sample_indices_path and Path(sample_indices_path).exists():
             with open(sample_indices_path, 'r') as f:
                 sample_indices = json.load(f)
             sample_indices = list(chain(*list(sample_indices.values())))
-            return [all_combinations[i] for i in sample_indices]
+            return [self.sentence_pairs_indices[i] for i in sample_indices]
         else:
             raise ValueError
+
+    @staticmethod
+    def get_sample_indices(labels, save_path):
+        if not Path(save_path).exists():
+            c = Counter(labels)
+            sample_probabilities = {key: min(c.values())/value for key, value in c.items()}
+            print(save_path)
+            print(sample_probabilities)
+            sample_indices_dict = {key: [] for key, value in c.items()}
+            for i, label in enumerate(labels):
+                sample = np.random.choice(np.arange(0, 2), p=[1-sample_probabilities[label], sample_probabilities[label]])
+                index_selected = sample > 0.5
+                if index_selected:
+                    sample_indices_dict[label].append(i)
+            with open(save_path, 'w') as fp:
+                json.dump(sample_indices_dict, fp)
+
+            return sample_indices_dict
+        else:
+            with open(save_path, 'r') as f:
+                sample_indices = json.load(f)
+            return sample_indices
 
     def get_balanced_labels(self, sample_indices_path: str = None):
         with open(sample_indices_path, 'r') as f:

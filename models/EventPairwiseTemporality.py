@@ -45,10 +45,10 @@ class EventPairwiseTemporalityModel(object):
 
     def prepare_data(self, test=False):
         if not test:
-            train_csv_path = Path("./data/gdelt_crawled/train_v1.csv")
-            valid_csv_path = Path("./data/gdelt_crawled/valid_v1.csv")
+            train_csv_path = Path("./data/gdelt_crawled/train_v2.csv")
+            valid_csv_path = Path("./data/gdelt_crawled/valid_v2.csv")
             train = StormyDataset(train_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_train.pkl"),
-                                  sample_indices_path=Path("./data/gdelt_crawled/sample_indices.json"),
+                                  sample_indices_path=Path("./data/gdelt_crawled/sample_indices_train.json"),
                                   subset=self.subset)
             valid = StormyDataset(valid_csv_path, label_pkl=Path("./data/gdelt_crawled/labels_valid.pkl"),
                                   sample_indices_path=Path("./data/gdelt_crawled/sample_indices_valid.json"),
@@ -68,7 +68,7 @@ class EventPairwiseTemporalityModel(object):
 
             return train_examples, valid_examples
         else:
-            test_csv_path = Path("./data/gdelt_crawled/test_v1.csv")
+            test_csv_path = Path("./data/gdelt_crawled/test_v2.csv")
             test = StormyDataset(test_csv_path, label_pkl=None, subset=self.subset)
             test_labels = test.labels
             test_titles = test.df["title"].values
@@ -91,7 +91,7 @@ class EventPairwiseTemporalityModel(object):
         # Configure the training
         num_epochs = 2
 
-        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.1)  # 10% of train data for warm-up
+        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.5)  # 10% of train data for warm-up
         logger.info(f"Warmup-steps: {warmup_steps}")
         logger.info(f"Number of epochs: {num_epochs}")
         logger.info(f"Output path: {str(Path('./outputs', self.exp_name))}")
@@ -144,6 +144,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v2", transformer_model='distilbert-base-uncased', subset=1)
+    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v2", transformer_model='distilbert-base-uncased', subset=0.01)
     model.train()
     model.test()
