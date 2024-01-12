@@ -89,7 +89,7 @@ class EventPairwiseTemporalityModel(object):
 
     def train(self):
         # Configure the training
-        num_epochs = 2
+        num_epochs = 100
 
         warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.5)  # 10% of train data for warm-up
         logger.info(f"Warmup-steps: {warmup_steps}")
@@ -144,6 +144,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v2", transformer_model='distilbert-base-uncased', subset=0.01)
+    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v3", transformer_model='distilbert-base-uncased', subset=1)
     model.train()
     model.test()

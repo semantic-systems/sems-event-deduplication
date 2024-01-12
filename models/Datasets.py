@@ -16,11 +16,11 @@ class StormyDataset(torch.utils.data.Dataset):
         random.seed(4)
         self.df = pd.read_csv(csv_path)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
+        self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
         if label_pkl is not None:
             with open(label_pkl, "rb") as fp:
                 self.labels = pickle.load(fp)
         else:
-            self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
             self.labels = list(map(self.get_label, self.sentence_pairs_indices))
         self.sample_indices = self.get_sample_indices(self.labels, sample_indices_path)
         self.labels = self.get_balanced_labels(sample_indices_path)
