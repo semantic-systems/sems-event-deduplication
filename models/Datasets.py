@@ -104,28 +104,30 @@ class StormyDataset(torch.utils.data.Dataset):
         return len(self.sentence_pairs_indices)
 
 
-class CrisisFactsDataset(torch.utils.data.Dataset):
-    def __init__(self, csv_path, label_pkl=None, subset: float = 1.0):
+class CrisisFactsDataset(StormyDataset):
+    def __init__(self, csv_path, label_pkl=None, sample_indices_path=None, subset: float = 1.0):
+        super().__init__(csv_path, label_pkl, sample_indices_path, subset)
         random.seed(4)
         self.df = pd.read_csv(csv_path)
         self.df.rename({'text': 'title'}, axis=1, inplace=True)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
         self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
-        self.end_index = round(subset * len(self.sentence_pairs_indices))
-        self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
-        random.shuffle(self.sentence_pairs_indices)
-        self.get_descriptions()
         if label_pkl is not None:
             with open(label_pkl, "rb") as fp:
                 self.labels = pickle.load(fp)
-                self.labels = [self.label2int[label] for label in self.labels]
-                random.shuffle(self.labels)
         else:
             self.labels = list(map(self.get_label, self.sentence_pairs_indices))
-            with open('./data/gdelt_crawled/labels_crisisfacts_test.pkl', 'wb') as file:
-                pickle.dump(self.labels, file)
-            self.labels = [self.label2int[label] for label in self.labels]
-            random.shuffle(self.labels)
+
+        if sample_indices_path:
+            self.sample_indices = self.get_sample_indices(self.labels, sample_indices_path)
+            self.labels = self.get_balanced_labels(sample_indices_path)
+        self.labels = [self.label2int[label] for label in self.labels]
+
+        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sample_indices_path=sample_indices_path)
+        self.end_index = round(subset * len(self.sentence_pairs_indices))
+        self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
+
+        self.get_descriptions()
 
     def get_label(self, index_tuple):
         clusters = self.df.event.values

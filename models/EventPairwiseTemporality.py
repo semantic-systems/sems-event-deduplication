@@ -84,7 +84,7 @@ class EventPairwiseTemporalityModel(object):
             test_examples_crisisfact = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
                                                             test_titles[test.sentence_pairs_indices[i][1]]],
                                                      label=test_labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts): {len(test_examples)} pairs of sentences")
+            logger.info(f"Test (crisisfacts): {len(test_examples_crisisfact)} pairs of sentences")
             return test_examples, test_examples_crisisfact
 
     def train(self):
