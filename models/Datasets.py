@@ -22,15 +22,15 @@ class StormyDataset(torch.utils.data.Dataset):
                 self.labels = pickle.load(fp)
         else:
             self.labels = list(map(self.get_label, self.sentence_pairs_indices))
-        self.sample_indices = self.get_sample_indices(self.labels, sample_indices_path)
-        self.labels = self.get_balanced_labels(sample_indices_path)
+
+        if sample_indices_path:
+            self.sample_indices = self.get_sample_indices(self.labels, sample_indices_path)
+            self.labels = self.get_balanced_labels(sample_indices_path)
         self.labels = [self.label2int[label] for label in self.labels]
-        random.shuffle(self.labels)
 
         self.sentence_pairs_indices = self.get_sentence_pairs_indices(sample_indices_path=sample_indices_path)
         self.end_index = round(subset * len(self.sentence_pairs_indices))
         self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
-        random.shuffle(self.sentence_pairs_indices)
 
         self.get_descriptions()
 

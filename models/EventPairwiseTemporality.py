@@ -89,9 +89,9 @@ class EventPairwiseTemporalityModel(object):
 
     def train(self):
         # Configure the training
-        num_epochs = 100
+        num_epochs = 20
 
-        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.5)  # 10% of train data for warm-up
+        warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.1)  # 10% of train data for warm-up
         logger.info(f"Warmup-steps: {warmup_steps}")
         logger.info(f"Number of epochs: {num_epochs}")
         logger.info(f"Output path: {str(Path('./outputs', self.exp_name))}")
