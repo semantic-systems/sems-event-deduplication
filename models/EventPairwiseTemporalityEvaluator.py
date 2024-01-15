@@ -1,5 +1,6 @@
 import os
 import csv
+from pathlib import Path
 
 import numpy as np
 from sentence_transformers.evaluation import LabelAccuracyEvaluator
@@ -72,9 +73,9 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
         logger.info(f"    f1: {weighted_f1}")
 
         if output_path is not None and self.write_csv:
-            csv_path = os.path.join(output_path, self.csv_file)
+            csv_path = Path(output_path, self.csv_file).absolute()
             if "test" in self.name:
-                y_predict.dump(os.path.join(output_path, "prediction.pkl"))
+                y_predict.dump(Path(output_path, "prediction.pkl").absolute())
 
             if not os.path.isfile(csv_path):
                 with open(csv_path, newline='', mode="w", encoding="utf-8") as f:
