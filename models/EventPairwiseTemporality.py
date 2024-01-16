@@ -19,7 +19,8 @@ class EventPairwiseTemporalityModel(object):
                  batch_size: int = 512,
                  exp_name: str = "v1",
                  transformer_model: str = 'distilbert-base-uncased',
-                 subset: float = 1.0):
+                 subset: float = 1.0,
+                 load_pretrained: bool = False):
         self.exp_name = exp_name
         self.subset = subset
         self.prepare_environment(exp_name)
@@ -28,8 +29,11 @@ class EventPairwiseTemporalityModel(object):
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
         dense_model = models.Dense(in_features=pooling_model.get_sentence_embedding_dimension(),
                                    out_features=256, activation_function=nn.Tanh())
+        if not load_pretrained:
+            self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model], device=self.device)
+        else:
+            self.model = SentenceTransformer(str(Path("./outputs", exp_name).absolute()))
 
-        self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model], device=self.device)
         self.label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
 
         self.train_loss = losses.SoftmaxLoss(model=self.model,
@@ -89,7 +93,7 @@ class EventPairwiseTemporalityModel(object):
 
     def train(self):
         # Configure the training
-        num_epochs = 20
+        num_epochs = 10
 
         warmup_steps = math.ceil(len(self.training_dataloader) * num_epochs * 0.1)  # 10% of train data for warm-up
         logger.info(f"Warmup-steps: {warmup_steps}")
@@ -144,6 +148,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v3", transformer_model='distilbert-base-uncased', subset=1)
+    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v1", transformer_model='distilbert-base-uncased', subset=1, load_pretrained=True)
     model.train()
     model.test()
