@@ -72,7 +72,7 @@ class StormyDataset(torch.utils.data.Dataset):
         self.df = pd.read_csv(csv_path)
         self.label2int = self.get_label2int(task)
         self.sentence_pairs_indices_pkl = sentence_pairs_indices_pkl
-        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl, sample_indices_path)
+        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl)
         self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
                                                                    sentence_pairs_indices=self.sentence_pairs_indices,
                                                                    sample_indices_path=sample_indices_path)
@@ -92,7 +92,7 @@ class StormyDataset(torch.utils.data.Dataset):
             ValueError(f"{task} not defined! Please choose from 'combined', 'event_deduplication' or 'event_temporality'")
         return label2int
 
-    def get_sentence_pairs_indices(self, sentence_pairs_indices_pkl: str, sample_indices_path: str):
+    def get_sentence_pairs_indices(self, sentence_pairs_indices_pkl: str):
         if sentence_pairs_indices_pkl and Path(sentence_pairs_indices_pkl).exists():
             logger.info(f"Found sentence pair indices under {sentence_pairs_indices_pkl}. Loading ({self.task}/{self.data_type}) ...")
 
@@ -102,14 +102,7 @@ class StormyDataset(torch.utils.data.Dataset):
         else:
             logger.info(f"Sentence pair indices file ({sentence_pairs_indices_pkl}) not found. Creating sentence pair indices ({self.task}/{self.data_type})...")
             sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
-            if not Path(sample_indices_path).exists():
-                return sentence_pairs_indices
-            else:
-                with open(sample_indices_path, 'r') as f:
-                    sample_indices = json.load(f)
-                sample_indices = list(chain(*list(sample_indices.values())))
-                sentence_pairs_indices = [self.sentence_pairs_indices[i] for i in sample_indices]
-                return sentence_pairs_indices
+            return sentence_pairs_indices
 
     def get_labels(self, label_pkl: str, sentence_pairs_indices: list, sample_indices_path: str):
         if Path(label_pkl).exists():
@@ -233,7 +226,7 @@ class CrisisFactsDataset(StormyDataset):
         self.df.rename({'text': 'title'}, axis=1, inplace=True)
         self.label2int = self.get_label2int(task)
         self.sentence_pairs_indices_pkl = sentence_pairs_indices_pkl
-        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl, sample_indices_path)
+        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl)
         self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
                                                                    sentence_pairs_indices=self.sentence_pairs_indices,
                                                                    sample_indices_path=sample_indices_path)
