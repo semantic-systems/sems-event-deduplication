@@ -1,7 +1,7 @@
 import json
 from collections import Counter
 from datetime import datetime
-
+import logging
 import numpy as np
 import pandas as pd
 import torch
@@ -11,6 +11,11 @@ from itertools import combinations, chain
 import pickle
 import random
 from sklearn.model_selection import train_test_split
+
+
+logging.basicConfig(level=logging.NOTSET)
+logger = logging.getLogger(__name__)
+logging.getLogger().setLevel(logging.INFO)
 
 
 def split_stormy_dataset():
@@ -53,31 +58,26 @@ def split_crisisfacts_dataset():
 
 
 class StormyDataset(torch.utils.data.Dataset):
-    def __init__(self, csv_path, label_pkl=None, sample_indices_path=None, subset: float = 1.0, task: str = "combined"):
+    def __init__(self,
+                 csv_path,
+                 label_pkl: str,
+                 sentence_pairs_indices_pkl: str,
+                 sample_indices_path: str,
+                 subset: float = 1.0,
+                 task: str = "combined",
+                 data_type: str = "train"):
         random.seed(4)
+        self.data_type = data_type
         self.task = task
         self.df = pd.read_csv(csv_path)
         self.label2int = self.get_label2int(task)
-        self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
-        if label_pkl is not None and Path(label_pkl).exists():
-            with open(label_pkl, "rb") as fp:
-                self.labels = pickle.load(fp)
-        else:
-            self.labels = list(map(self.get_label, self.sentence_pairs_indices))
-            if "ignored" in self.labels:
-                self.valid_label_indices = [i for i, label in enumerate(self.labels) if label != "ignored"]
-                self.labels = [self.labels[i] for i in self.valid_label_indices]
-                self.sentence_pairs_indices = [self.sentence_pairs_indices[i] for i in self.valid_label_indices]
-
-        if sample_indices_path:
-            sample_indices = self.get_sample_indices(self.labels, sample_indices_path)
-            self.labels = self.get_balanced_labels(sample_indices)
-        self.labels = [self.label2int[label] for label in self.labels]
-
-        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sample_indices_path=sample_indices_path)
+        self.sentence_pairs_indices_pkl = sentence_pairs_indices_pkl
+        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl, sample_indices_path)
+        self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
+                                                                   sentence_pairs_indices=self.sentence_pairs_indices,
+                                                                   sample_indices_path=sample_indices_path)
         self.end_index = round(subset * len(self.sentence_pairs_indices))
         self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
-
         self.get_descriptions()
 
     @staticmethod
@@ -92,25 +92,54 @@ class StormyDataset(torch.utils.data.Dataset):
             ValueError(f"{task} not defined! Please choose from 'combined', 'event_deduplication' or 'event_temporality'")
         return label2int
 
-    def get_sentence_pairs_indices(self, sample_indices_path: str = None):
-        if not sample_indices_path:
-            return self.sentence_pairs_indices
-        elif sample_indices_path and Path(sample_indices_path).exists():
-            with open(sample_indices_path, 'r') as f:
-                sample_indices = json.load(f)
-            sample_indices = list(chain(*list(sample_indices.values())))
-            return [self.sentence_pairs_indices[i] for i in sample_indices]
+    def get_sentence_pairs_indices(self, sentence_pairs_indices_pkl: str, sample_indices_path: str):
+        if sentence_pairs_indices_pkl and Path(sentence_pairs_indices_pkl).exists():
+            with open(sentence_pairs_indices_pkl, "rb") as fp:
+                sentence_pairs_indices = pickle.load(fp)
+            return sentence_pairs_indices
         else:
-            raise ValueError
+            sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
+            if not Path(sample_indices_path).exists():
+                return sentence_pairs_indices
+            else:
+                with open(sample_indices_path, 'r') as f:
+                    sample_indices = json.load(f)
+                sample_indices = list(chain(*list(sample_indices.values())))
+                sentence_pairs_indices = [self.sentence_pairs_indices[i] for i in sample_indices]
+                return sentence_pairs_indices
+
+    def get_labels(self, label_pkl: str, sentence_pairs_indices: list, sample_indices_path: str):
+        if Path(label_pkl).exists():
+            logger.info(f"Found labels under {label_pkl}. Loading ({self.task}/{self.data_type}) ...")
+            with open(label_pkl, "rb") as fp:
+                labels = pickle.load(fp)
+            assert len(labels) == len(self.sentence_pairs_indices)
+        else:
+            logger.info(f"Label file ({label_pkl}) not found. Creating labels ({self.task}/{self.data_type})...")
+            labels = list(map(self.get_label, self.sentence_pairs_indices))
+            if "ignored" in labels:
+                valid_label_indices = [i for i, label in enumerate(labels) if label != "ignored"]
+                labels = [labels[i] for i in valid_label_indices]
+                sentence_pairs_indices = [sentence_pairs_indices[i] for i in valid_label_indices]
+            sample_indices = self.get_sample_indices(labels, sample_indices_path)
+            labels, sentence_pairs_indices = self.get_balanced_sentence_pairs_and_labels(sample_indices, labels, sentence_pairs_indices)
+            assert len(labels) == len(self.sentence_pairs_indices)
+            logger.info(f"Balanced sentence pairs indices created. Storing locally ({self.sentence_pairs_indices_pkl}).")
+            with open(self.sentence_pairs_indices_pkl, 'wb') as file:
+                pickle.dump(sentence_pairs_indices, file)
+            logger.info(f"Balanced labels created. Storing locally ({label_pkl}).")
+            with open(label_pkl, 'wb') as file:
+                pickle.dump(labels, file)
+            labels = [self.label2int[label] for label in labels]
+        return labels, sentence_pairs_indices
 
     @staticmethod
     def get_sample_indices(labels, save_path):
         if not Path(save_path).exists():
-            print("Creating sample indices to balance dataset...")
+            logger.info(f"Sample indices ({save_path}) not found. Creating sample indices to balance dataset...")
             c = Counter(labels)
             sample_probabilities = {key: min(c.values())/value for key, value in c.items()}
-            print(save_path)
-            print(sample_probabilities)
+            logger.info(f"Sample probabilities: {sample_probabilities}")
             sample_indices_dict = {key: [] for key, value in c.items()}
             for i, label in enumerate(labels):
                 sample = np.random.choice(np.arange(0, 2), p=[1-sample_probabilities[label], sample_probabilities[label]])
@@ -122,13 +151,16 @@ class StormyDataset(torch.utils.data.Dataset):
 
             return sample_indices_dict
         else:
+            logger.info(f"Sample indices ({save_path}) found. Loading...")
             with open(save_path, 'r') as f:
                 sample_indices = json.load(f)
             return sample_indices
 
-    def get_balanced_labels(self, sample_indices):
+    @staticmethod
+    def get_balanced_sentence_pairs_and_labels(sample_indices, labels, sentence_pairs_indices):
+        logger.info(f"Creating balanced dataset...")
         sample_indices = list(chain(*list(sample_indices.values())))
-        return [self.labels[i] for i in sample_indices]
+        return [labels[i] for i in sample_indices], [sentence_pairs_indices[i] for i in sample_indices]
 
     def get_label(self, index_tuple):
         clusters = self.df.new_cluster.values
@@ -182,32 +214,26 @@ class StormyDataset(torch.utils.data.Dataset):
 
 
 class CrisisFactsDataset(StormyDataset):
-    def __init__(self, csv_path, label_pkl=None, sample_indices_path=None, subset: float = 1.0, task: str = "combined"):
-        super().__init__(csv_path, label_pkl, sample_indices_path, subset, task)
+    def __init__(self,
+                 csv_path,
+                 label_pkl: str,
+                 sentence_pairs_indices_pkl: str,
+                 sample_indices_path: str,
+                 subset: float = 1.0,
+                 task: str = "combined",
+                 data_type: str = "train"):
+        super().__init__(csv_path, label_pkl, sentence_pairs_indices_pkl, sample_indices_path, subset, task, data_type)
         random.seed(4)
         self.df = pd.read_csv(csv_path)
         self.df.rename({'text': 'title'}, axis=1, inplace=True)
         self.label2int = self.get_label2int(task)
-        self.sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
-        if label_pkl is not None and Path(label_pkl).exists():
-            with open(label_pkl, "rb") as fp:
-                self.labels = pickle.load(fp)
-        else:
-            self.labels = list(map(self.get_label, self.sentence_pairs_indices))
-            if "ignored" in self.labels:
-                self.valid_label_indices = [i for i, label in enumerate(self.labels) if label != "ignored"]
-                self.labels = [self.labels[i] for i in self.valid_label_indices]
-                self.sentence_pairs_indices = [self.sentence_pairs_indices[i] for i in self.valid_label_indices]
-
-        if sample_indices_path:
-            sample_indices = self.get_sample_indices(self.labels, sample_indices_path)
-            self.labels = self.get_balanced_labels(sample_indices)
-        self.labels = [self.label2int[label] for label in self.labels]
-
-        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sample_indices_path=sample_indices_path)
+        self.sentence_pairs_indices_pkl = sentence_pairs_indices_pkl
+        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl, sample_indices_path)
+        self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
+                                                                   sentence_pairs_indices=self.sentence_pairs_indices,
+                                                                   sample_indices_path=sample_indices_path)
         self.end_index = round(subset * len(self.sentence_pairs_indices))
         self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
-
         self.get_descriptions()
 
     def get_label(self, index_tuple):
