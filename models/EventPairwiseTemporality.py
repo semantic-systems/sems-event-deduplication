@@ -86,7 +86,7 @@ class EventPairwiseTemporalityModel(object):
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
                                                  test_titles[test.sentence_pairs_indices[i][1]]],
                                           label=test_labels[i]) for i in range(len(test))]
-            logger.info(f"Test: {len(test_examples)} pairs of sentences")
+            logger.info(f"Test (stormy - test): {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/test_from_crisisfacts.csv")
             test = CrisisFactsDataset(test_csv_path,
@@ -95,10 +95,10 @@ class EventPairwiseTemporalityModel(object):
                                       subset=self.subset, task=self.task)
             test_labels = test.labels
             test_titles = test.df["title"].values
-            test_examples_crisisfact = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
-                                                            test_titles[test.sentence_pairs_indices[i][1]]],
-                                                     label=test_labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts): {len(test_examples_crisisfact)} pairs of sentences")
+            test_examples_crisisfact_full = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
+                                                                 test_titles[test.sentence_pairs_indices[i][1]]],
+                                                          label=test_labels[i]) for i in range(len(test))]
+            logger.info(f"Test (crisisfacts - full): {len(test_examples_crisisfact_full)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
             test = CrisisFactsDataset(test_csv_path,
@@ -109,11 +109,11 @@ class EventPairwiseTemporalityModel(object):
                                       subset=self.subset, task=self.task)
             test_labels = test.labels
             test_titles = test.df["title"].values
-            test_examples_crisisfact = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
+            test_examples_crisisfact_test = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
                                                             test_titles[test.sentence_pairs_indices[i][1]]],
                                                      label=test_labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts): {len(test_examples_crisisfact)} pairs of sentences")
-            return test_examples, test_examples_crisisfact
+            logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact_test)} pairs of sentences")
+            return test_examples, test_examples_crisisfact_full, test_examples_crisisfact_test
 
     def train(self):
 
@@ -137,7 +137,7 @@ class EventPairwiseTemporalityModel(object):
 
     def test(self):
         logger.info(f"Testing on curated test set.")
-        testing_data, testing_data_crisisfacts = self.prepare_data(test=True)
+        testing_data, testing_data_crisisfacts_full, testing_data_crisisfacts_test = self.prepare_data(test=True)
         testing_dataset = SentencesDataset(testing_data, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
@@ -147,11 +147,20 @@ class EventPairwiseTemporalityModel(object):
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
 
 
-        logger.info(f"Testing on Crisisfacts test set.")
-        testing_dataset = SentencesDataset(testing_data_crisisfacts, self.model)
+        logger.info(f"Testing on Crisisfacts full set.")
+        testing_dataset = SentencesDataset(testing_data_crisisfacts_full, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
-                                                              name=f'test_crisisfacts_{self.exp_name}_{self.task}',
+                                                              name=f'test_crisisfacts_full_{self.exp_name}_{self.task}',
+                                                              softmax_model=self.train_loss)
+
+        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
+
+        logger.info(f"Testing on Crisisfacts test set.")
+        testing_dataset = SentencesDataset(testing_data_crisisfacts_full, self.model)
+        testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
+        testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
+                                                              name=f'test_crisisfacts_test_{self.exp_name}_{self.task}',
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
