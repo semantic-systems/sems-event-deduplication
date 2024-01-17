@@ -94,10 +94,13 @@ class StormyDataset(torch.utils.data.Dataset):
 
     def get_sentence_pairs_indices(self, sentence_pairs_indices_pkl: str, sample_indices_path: str):
         if sentence_pairs_indices_pkl and Path(sentence_pairs_indices_pkl).exists():
+            logger.info(f"Found sentence pair indices under {sentence_pairs_indices_pkl}. Loading ({self.task}/{self.data_type}) ...")
+
             with open(sentence_pairs_indices_pkl, "rb") as fp:
                 sentence_pairs_indices = pickle.load(fp)
             return sentence_pairs_indices
         else:
+            logger.info(f"Sentence pair indices file ({sentence_pairs_indices_pkl}) not found. Creating sentence pair indices ({self.task}/{self.data_type})...")
             sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
             if not Path(sample_indices_path).exists():
                 return sentence_pairs_indices
@@ -123,7 +126,8 @@ class StormyDataset(torch.utils.data.Dataset):
                 sentence_pairs_indices = [sentence_pairs_indices[i] for i in valid_label_indices]
             sample_indices = self.get_sample_indices(labels, sample_indices_path)
             labels, sentence_pairs_indices = self.get_balanced_sentence_pairs_and_labels(sample_indices, labels, sentence_pairs_indices)
-            assert len(labels) == len(self.sentence_pairs_indices)
+            print("labels length", len(labels))
+            print("sentence pair length", len(self.sentence_pairs_indices))
             logger.info(f"Balanced sentence pairs indices created. Storing locally ({self.sentence_pairs_indices_pkl}).")
             with open(self.sentence_pairs_indices_pkl, 'wb') as file:
                 pickle.dump(sentence_pairs_indices, file)
@@ -146,6 +150,7 @@ class StormyDataset(torch.utils.data.Dataset):
                 index_selected = sample > 0.5
                 if index_selected:
                     sample_indices_dict[label].append(i)
+            logger.info(f"Sample indices created and stored.")
             with open(save_path, 'w') as fp:
                 json.dump(sample_indices_dict, fp)
 

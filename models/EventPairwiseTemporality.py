@@ -231,10 +231,10 @@ if __name__ == "__main__":
     tasks = ["combined", "event_deduplication", "event_temporality"]
     for task in tasks:
         model = EventPairwiseTemporalityModel(batch_size=512,
-                                              num_epochs=2,
+                                              num_epochs=1,
                                               exp_name="test",
                                               transformer_model='distilbert-base-uncased',
-                                              subset=0.01,
+                                              subset=1,
                                               load_pretrained=False,
                                               task=task)
         model.train()
