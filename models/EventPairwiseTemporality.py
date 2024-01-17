@@ -73,7 +73,10 @@ class EventPairwiseTemporalityModel(object):
             return train_examples, valid_examples
         else:
             test_csv_path = Path("./data/gdelt_crawled/test_v2.csv")
-            test = StormyDataset(test_csv_path, label_pkl=None, subset=self.subset)
+            test = StormyDataset(test_csv_path,
+                                 label_pkl=Path("./data/gdelt_crawled/labels_test.pkl"),
+                                 sample_indices_path=Path("./data/gdelt_crawled/sample_indices_test.json"),
+                                 subset=self.subset)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -82,7 +85,10 @@ class EventPairwiseTemporalityModel(object):
             logger.info(f"Test: {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/test_from_crisisfacts.csv")
-            test = CrisisFactsDataset(test_csv_path, label_pkl=None, subset=self.subset)
+            test = CrisisFactsDataset(test_csv_path,
+                                      label_pkl=Path("./data/gdelt_crawled/labels_crisisfacts_test.pkl"),
+                                      sample_indices_path=Path("./data/gdelt_crawled/sample_indices_test_crisisfacts.json"),
+                                      subset=self.subset)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples_crisisfact = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -148,6 +154,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v1", transformer_model='distilbert-base-uncased', subset=1, load_pretrained=True)
-    model.train()
+    model = EventPairwiseTemporalityModel(batch_size=512, exp_name="v1", transformer_model='distilbert-base-uncased', subset=0.1, load_pretrained=True)
+    # model.train()
     model.test()
