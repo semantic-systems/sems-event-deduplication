@@ -280,3 +280,4 @@ if __name__ == "__main__":
     # print(f"Validation data \n {valid.get_descriptions()}\n")
     # print(f"Testing data \n {test.get_descriptions()}\n")
     print(f"Testing data \n {test_crisisfacts.get_descriptions()}\n")
+    split_crisisfacts_dataset()

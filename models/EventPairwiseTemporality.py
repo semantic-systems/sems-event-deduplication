@@ -90,8 +90,22 @@ class EventPairwiseTemporalityModel(object):
 
             test_csv_path = Path("./data/crisisfacts_data/test_from_crisisfacts.csv")
             test = CrisisFactsDataset(test_csv_path,
-                                      label_pkl=Path(f"./data/crisisfacts_data/{self.task}/labels_crisisfacts_test.pkl"),
-                                      sample_indices_path=Path(f"./data/crisisfacts_data/{self.task}/sample_indices_test_crisisfacts.json"),
+                                      label_pkl=Path(f"./data/crisisfacts_data/{self.task}/labels_crisisfacts_all.pkl"),
+                                      sample_indices_path=Path(f"./data/crisisfacts_data/{self.task}/sample_indices_crisisfacts_all.json"),
+                                      subset=self.subset, task=self.task)
+            test_labels = test.labels
+            test_titles = test.df["title"].values
+            test_examples_crisisfact = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
+                                                            test_titles[test.sentence_pairs_indices[i][1]]],
+                                                     label=test_labels[i]) for i in range(len(test))]
+            logger.info(f"Test (crisisfacts): {len(test_examples_crisisfact)} pairs of sentences")
+
+            test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
+            test = CrisisFactsDataset(test_csv_path,
+                                      label_pkl=Path(
+                                          f"./data/crisisfacts_data/{self.task}/labels_crisisfacts_test.pkl"),
+                                      sample_indices_path=Path(
+                                          f"./data/crisisfacts_data/{self.task}/sample_indices_crisisfacts_test.json"),
                                       subset=self.subset, task=self.task)
             test_labels = test.labels
             test_titles = test.df["title"].values
