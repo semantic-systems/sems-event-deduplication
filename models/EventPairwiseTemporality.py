@@ -157,7 +157,7 @@ class EventPairwiseTemporalityModel(object):
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
 
         logger.info(f"Testing on Crisisfacts test set.")
-        testing_dataset = SentencesDataset(testing_data_crisisfacts_full, self.model)
+        testing_dataset = SentencesDataset(testing_data_crisisfacts_test, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
                                                               name=f'test_crisisfacts_test_{self.exp_name}_{self.task}',
