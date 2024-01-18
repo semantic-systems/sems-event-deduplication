@@ -199,7 +199,7 @@ class StormyDataset(torch.utils.data.Dataset):
                 return label
 
     def get_descriptions(self):
-        print(f"The dataset csv has {len(self.df)} entries with the following columns - {self.df.columns.values}")
+        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries with the following columns - {self.df.columns.values}")
         print(f"     Number of clusters - {len(self.df.new_cluster.unique())}")
         print(f"     Number of combinations over sentence pairs - {len(self.sentence_pairs_indices)}")
 
@@ -279,7 +279,7 @@ class CrisisFactsDataset(StormyDataset):
         return rounded_timestamp
 
     def get_descriptions(self):
-        print(f"The dataset csv has {len(self.df)} entries with the following columns - {self.df.columns.values}")
+        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries with the following columns - {self.df.columns.values}")
         print(f"     Number of clusters - {len(self.df.event.unique())}")
         print(f"     Number of combinations over sentence pairs - {len(self.sentence_pairs_indices)}")
 

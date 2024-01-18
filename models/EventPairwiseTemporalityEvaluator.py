@@ -24,6 +24,7 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
 
     def __call__(self, model, output_path: str = None, epoch: int = -1, steps: int = -1) -> float:
         model.eval()
+        logger.info(f"--------device for evaluator {model.device} -------------")
         total = 0
         correct = 0
         y_true = []
@@ -46,6 +47,13 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
             for idx in range(len(features)):
                 features[idx] = batch_to_device(features[idx], model.device)
             label_ids = label_ids.to(model.device)
+            logger.warning(f"label len {len(label_ids)}")
+            logger.warning(f"label first element {label_ids[0]}")
+            logger.warning(f"label len {label_ids.get_device()}")
+            logger.warning(f"features len {len(features)}")
+            logger.warning(f"features first element {features[0]}")
+            logger.warning(f"features len {features.get_device()}")
+
             with torch.no_grad():
                 _, prediction = self.softmax_model(features, labels=None)
             y_predict.append(torch.argmax(prediction, dim=1).detach().cpu().numpy())

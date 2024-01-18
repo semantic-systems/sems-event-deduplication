@@ -36,10 +36,12 @@ class EventPairwiseTemporalityModel(object):
         if not load_pretrained:
             self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model], device=self.device)
         else:
-            self.model = SentenceTransformer(str(Path("./outputs", exp_name, task).absolute()))
-
+            if Path("./outputs", exp_name, task, "pytorch_model.bin").exists():
+                self.model = SentenceTransformer(str(Path("./outputs", exp_name, task).absolute()), device=self.device)
+            else:
+                self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model],
+                                                 device=self.device)
         self.label2int = self.get_label2int(task)
-
         self.train_loss = losses.SoftmaxLoss(model=self.model,
                                              sentence_embedding_dimension=self.model.get_sentence_embedding_dimension(),
                                              num_labels=len(self.label2int))
