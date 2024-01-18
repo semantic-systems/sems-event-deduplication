@@ -119,8 +119,6 @@ class StormyDataset(torch.utils.data.Dataset):
                 sentence_pairs_indices = [sentence_pairs_indices[i] for i in valid_label_indices]
             sample_indices = self.get_sample_indices(labels, sample_indices_path)
             labels, sentence_pairs_indices = self.get_balanced_sentence_pairs_and_labels(sample_indices, labels, sentence_pairs_indices)
-            print("labels length", len(labels))
-            print("sentence pair length", len(self.sentence_pairs_indices))
             logger.info(f"Balanced sentence pairs indices created. Storing locally ({self.sentence_pairs_indices_pkl}).")
             with open(self.sentence_pairs_indices_pkl, 'wb') as file:
                 pickle.dump(sentence_pairs_indices, file)
@@ -199,7 +197,7 @@ class StormyDataset(torch.utils.data.Dataset):
                 return label
 
     def get_descriptions(self):
-        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries with the following columns - {self.df.columns.values}")
+        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries.")
         print(f"     Number of clusters - {len(self.df.new_cluster.unique())}")
         print(f"     Number of combinations over sentence pairs - {len(self.sentence_pairs_indices)}")
 

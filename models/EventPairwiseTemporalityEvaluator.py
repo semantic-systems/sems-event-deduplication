@@ -18,9 +18,12 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
     def __init__(self, dataloader: DataLoader, name: str = "", softmax_model=None, write_csv: bool = True):
         super().__init__(dataloader, name, softmax_model, write_csv)
         self.csv_file = "evaluation_"+name+"_results.csv"
+        self.name = name
         self.csv_headers = ["epoch", "steps", "accuracy", "macro_precision", "macro_recall", "macro_f1",
                                      "micro_precision", "micro_recall",  "micro_f1",
                                      "weighted_precision", "weighted_recall", "weighted_f1"]
+        if self.softmax_model is not None:
+            self.softmax_model = self.softmax_model.to(self.device)
 
     def __call__(self, model, output_path: str = None, epoch: int = -1, steps: int = -1) -> float:
         model.eval()
@@ -76,7 +79,7 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
         if output_path is not None and self.write_csv:
             csv_path = Path(output_path, self.csv_file).absolute()
             if "test" in self.name:
-                y_predict.dump(Path(output_path, "prediction.pkl").absolute())
+                y_predict.dump(Path(output_path, self.name, "prediction.pkl").absolute())
 
             if not os.path.isfile(csv_path):
                 with open(csv_path, newline='', mode="w", encoding="utf-8") as f:
@@ -92,7 +95,7 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
                                      micro_precision, micro_recall,  micro_f1,
                                      weighted_precision, weighted_recall, weighted_f1])
 
-        return accuracy
+        return macro_f1
 
     @property
     def device(self):

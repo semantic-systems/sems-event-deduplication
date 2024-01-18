@@ -167,7 +167,7 @@ class EventPairwiseTemporalityModel(object):
         logger.info(f"Number of epochs: {self.num_epochs}")
         logger.info(f"Output path: {str(Path('./outputs', self.exp_name, self.task))}")
 
-        validation_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
+        validation_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "validation")))
 
         # Train the model
         self.model.fit(train_objectives=[(training_dataloader, self.train_loss)],
@@ -189,7 +189,7 @@ class EventPairwiseTemporalityModel(object):
                                                               name=f'test_{self.exp_name}_{self.task}',
                                                               softmax_model=self.train_loss)
 
-        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
+        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
 
 
         logger.info(f"Testing on Crisisfacts full set...")
@@ -199,7 +199,7 @@ class EventPairwiseTemporalityModel(object):
                                                               name=f'test_crisisfacts_full_{self.exp_name}_{self.task}',
                                                               softmax_model=self.train_loss)
 
-        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
+        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
 
         logger.info(f"Testing on Crisisfacts test set...")
         testing_dataset = SentencesDataset(testing_data_crisisfacts_test, self.model)
@@ -218,6 +218,7 @@ class EventPairwiseTemporalityModel(object):
             Path("./outputs", exp_name).mkdir()
         if not Path("./outputs", exp_name, task).exists():
             Path("./outputs", exp_name, task).mkdir()
+
     @property
     def device(self):
         if torch.cuda.is_available():
