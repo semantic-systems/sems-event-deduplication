@@ -41,6 +41,7 @@ class EventPairwiseTemporalityModel(object):
             else:
                 self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model],
                                                  device=self.device)
+        logger.info(f"-----------------model on device: {self.device}")
         self.label2int = self.get_label2int(task)
         self.train_loss = losses.SoftmaxLoss(model=self.model,
                                              sentence_embedding_dimension=self.model.get_sentence_embedding_dimension(),
@@ -93,6 +94,7 @@ class EventPairwiseTemporalityModel(object):
             valid_examples = [InputExample(texts=[valid_titles[valid.sentence_pairs_indices[i][0]],
                                                   valid_titles[valid.sentence_pairs_indices[i][1]]],
                                            label=valid_labels[i]) for i in range(len(valid))]
+            logger.info(f"valid_labels {valid_labels[:10]}-----------------")
             logger.info(f"Train: {len(train_examples)} pairs of sentences")
             logger.info(f"Validation: {len(valid_examples)} pairs of sentences")
 

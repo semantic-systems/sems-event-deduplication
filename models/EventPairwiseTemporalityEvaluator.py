@@ -24,7 +24,7 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
 
     def __call__(self, model, output_path: str = None, epoch: int = -1, steps: int = -1) -> float:
         model.eval()
-        logger.info(f"--------device for evaluator {model.device} -------------")
+        logger.info(f"--------device for evaluator {self.device} -------------")
         total = 0
         correct = 0
         y_true = []
@@ -45,8 +45,8 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
             features, label_ids = batch
             y_true.append(label_ids)
             for idx in range(len(features)):
-                features[idx] = batch_to_device(features[idx], model.device)
-            label_ids = label_ids.to(model.device)
+                features[idx] = batch_to_device(features[idx], self.device)
+            label_ids = label_ids.to(self.device)
             logger.warning(f"label len {len(label_ids)}")
             logger.warning(f"label first element {label_ids[0]}")
             logger.warning(f"label len {label_ids.get_device()}")
@@ -100,3 +100,10 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
                                      weighted_precision, weighted_recall, weighted_f1])
 
         return accuracy
+
+    @property
+    def device(self):
+        if torch.cuda.is_available():
+            return 'cuda'
+        else:
+            return "cpu"
