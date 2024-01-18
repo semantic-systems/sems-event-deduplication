@@ -46,8 +46,7 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
             y_true.append(label_ids)
             for idx in range(len(features)):
                 features[idx] = batch_to_device(features[idx], self.device)
-            label_ids = label_ids.to(self.device)
-
+                label_ids[idx] = batch_to_device(label_ids[idx], self.device)
             with torch.no_grad():
                 _, prediction = self.softmax_model(features, labels=None)
             y_predict.append(torch.argmax(prediction, dim=1).detach().cpu().numpy())
