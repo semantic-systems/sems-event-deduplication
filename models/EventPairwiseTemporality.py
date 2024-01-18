@@ -93,10 +93,6 @@ class EventPairwiseTemporalityModel(object):
             valid_examples = [InputExample(texts=[valid_titles[valid.sentence_pairs_indices[i][0]],
                                                   valid_titles[valid.sentence_pairs_indices[i][1]]],
                                            label=valid_labels[i]) for i in range(len(valid))]
-            logger.info(f"valid_labels {valid_labels[:10]}-----------------")
-            logger.info(f"Train: {len(train_examples)} pairs of sentences")
-            logger.info(f"Validation: {len(valid_examples)} pairs of sentences")
-
             return train_examples, valid_examples
         else:
             test_csv_path = Path(f"./data/stormy_data/test_v2.csv")
