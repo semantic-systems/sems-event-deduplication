@@ -127,7 +127,7 @@ class StormyDataset(torch.utils.data.Dataset):
             logger.info(f"Balanced labels created. Storing locally ({label_pkl}).")
             with open(label_pkl, 'wb') as file:
                 pickle.dump(labels, file)
-            labels = [self.label2int[label] for label in labels]
+        labels = [self.label2int[label] for label in labels]
         return labels, sentence_pairs_indices
 
     @staticmethod
