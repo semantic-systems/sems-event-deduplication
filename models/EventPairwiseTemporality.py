@@ -235,7 +235,7 @@ if __name__ == "__main__":
                                               exp_name="test",
                                               transformer_model='distilbert-base-uncased',
                                               subset=1,
-                                              load_pretrained=False,
+                                              load_pretrained=True,
                                               task=task)
         model.train()
         model.test()

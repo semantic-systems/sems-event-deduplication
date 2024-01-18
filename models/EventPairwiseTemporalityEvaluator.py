@@ -15,10 +15,11 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
-    def __init__(self, dataloader: DataLoader, name: str = "", softmax_model=None, write_csv: bool = True):
+    def __init__(self, dataloader: DataLoader, name: str = "", softmax_model=None, write_csv: bool = True, write_predictions: bool = True):
         super().__init__(dataloader, name, softmax_model, write_csv)
         self.csv_file = "evaluation_"+name+"_results.csv"
         self.name = name
+        self.write_predictions = write_predictions
         self.csv_headers = ["epoch", "steps", "accuracy", "macro_precision", "macro_recall", "macro_f1",
                                      "micro_precision", "micro_recall",  "micro_f1",
                                      "weighted_precision", "weighted_recall", "weighted_f1"]
@@ -78,8 +79,9 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
 
         if output_path is not None and self.write_csv:
             csv_path = Path(output_path, self.csv_file).absolute()
-            if "test" in self.name:
-                y_predict.dump(Path(output_path, self.name, "prediction.pkl").absolute())
+            if self.write_predictions:
+                y_predict.dump(Path(output_path, f"{self.name}_labels.pkl").absolute())
+                y_predict.dump(Path(output_path, f"{self.name}_prediction.pkl").absolute())
 
             if not os.path.isfile(csv_path):
                 with open(csv_path, newline='', mode="w", encoding="utf-8") as f:
