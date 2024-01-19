@@ -218,7 +218,13 @@ class EventPairwiseTemporalityModel(object):
             Path("./outputs", exp_name).mkdir()
         if not Path("./outputs", exp_name, task).exists():
             Path("./outputs", exp_name, task).mkdir()
-
+        if not Path("./outputs", exp_name, task, "train").exists():
+            Path("./outputs", exp_name, task, "train").mkdir()
+        if not Path("./outputs", exp_name, task, "validation").exists():
+            Path("./outputs", exp_name, task, "validation").mkdir()
+        if not Path("./outputs", exp_name, task, "test").exists():
+            Path("./outputs", exp_name, task, "test").mkdir()
+            
     @property
     def device(self):
         if torch.cuda.is_available():
