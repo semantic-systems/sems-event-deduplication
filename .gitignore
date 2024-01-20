@@ -1,3 +1,4 @@
+*.numbers
 *.pkl
 models/outputs/
 *.csv

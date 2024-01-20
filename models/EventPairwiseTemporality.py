@@ -113,24 +113,6 @@ class EventPairwiseTemporalityModel(object):
                                           label=test_labels[i]) for i in range(len(test))]
             logger.info(f"Test (stormy - test): {len(test_examples)} pairs of sentences")
 
-            test_csv_path = Path("./data/crisisfacts_data/test_from_crisisfacts.csv")
-            test = CrisisFactsDataset(test_csv_path,
-                                      label_pkl=str(Path(
-                                          f"./data/crisisfacts_data/{self.task}/labels_crisisfacts_all.pkl").absolute()),
-                                      sentence_pairs_indices_pkl=str(Path(
-                                          f"./data/crisisfacts_data/{self.task}/sentence_pairs_indices_crisisfacts_all.pkl").absolute()),
-                                      sample_indices_path=str(Path(
-                                          f"./data/crisisfacts_data/{self.task}/sample_indices_crisisfacts_all.json").absolute()),
-                                      subset=self.subset,
-                                      task=self.task,
-                                      data_type="test")
-            test_labels = test.labels
-            test_titles = test.df["title"].values
-            test_examples_crisisfact_full = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
-                                                                 test_titles[test.sentence_pairs_indices[i][1]]],
-                                                          label=test_labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts - full): {len(test_examples_crisisfact_full)} pairs of sentences")
-
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
             test = CrisisFactsDataset(test_csv_path,
                                       label_pkl=str(Path(
@@ -148,11 +130,87 @@ class EventPairwiseTemporalityModel(object):
                                                             test_titles[test.sentence_pairs_indices[i][1]]],
                                                      label=test_labels[i]) for i in range(len(test))]
             logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact_test)} pairs of sentences")
-            return test_examples, test_examples_crisisfact_full, test_examples_crisisfact_test
+            return test_examples, test_examples_crisisfact_test
 
-    def train(self):
+    def prepare_task_validation_data(self, test=False):
+        if not test:
+            train_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
+            valid_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
+            train = CrisisFactsDataset(train_csv_path,
+                                  label_pkl=str(Path(
+                                      f"./data/crisisfacts_data/{self.task}/labels_train.pkl").absolute()),
+                                  sentence_pairs_indices_pkl=str(Path(
+                                      f"./data/crisisfacts_data/{self.task}/sentence_pairs_indices_train.pkl").absolute()),
+                                  sample_indices_path=str(Path(
+                                      f"./data/crisisfacts_data/{self.task}/sample_indices_train.json").absolute()),
+                                  subset=self.subset,
+                                  task=self.task,
+                                  data_type="train")
+            valid = CrisisFactsDataset(valid_csv_path,
+                                  label_pkl=str(Path(
+                                      f"./data/crisisfacts_data/{self.task}/labels_valid.pkl").absolute()),
+                                  sentence_pairs_indices_pkl=str(Path(
+                                      f"./data/crisisfacts_data/{self.task}/sentence_pairs_indices_valid.pkl").absolute()),
+                                  sample_indices_path=str(Path(
+                                      f"./data/crisisfacts_data/{self.task}/sample_indices_valid.json").absolute()),
+                                  subset=self.subset,
+                                  task=self.task,
+                                  data_type="valid")
+            train_labels = train.labels
+            train_titles = train.df["title"].values
+            valid_labels = valid.labels
+            valid_titles = valid.df["title"].values
+            train_examples = [InputExample(texts=[train_titles[train.sentence_pairs_indices[i][0]],
+                                                  train_titles[train.sentence_pairs_indices[i][1]]],
+                                           label=train_labels[i]) for i in range(len(train))]
+            valid_examples = [InputExample(texts=[valid_titles[valid.sentence_pairs_indices[i][0]],
+                                                  valid_titles[valid.sentence_pairs_indices[i][1]]],
+                                           label=valid_labels[i]) for i in range(len(valid))]
+            return train_examples, valid_examples
+        else:
+            test_csv_path = Path(f"./data/stormy_data/test_v2.csv")
+            test = StormyDataset(test_csv_path,
+                                 label_pkl=str(Path(
+                                     f"./data/stormy_data/{self.task}/labels_test.pkl").absolute()),
+                                 sentence_pairs_indices_pkl=str(Path(
+                                     f"./data/stormy_data/{self.task}/sentence_pairs_indices_test.pkl").absolute()),
+                                 sample_indices_path=str(Path(
+                                     f"./data/stormy_data/{self.task}/sample_indices_test.json").absolute()),
+                                 subset=self.subset,
+                                 task=self.task,
+                                 data_type="test")
+            test_labels = test.labels
+            test_titles = test.df["title"].values
+            test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
+                                                 test_titles[test.sentence_pairs_indices[i][1]]],
+                                          label=test_labels[i]) for i in range(len(test))]
+            logger.info(f"Test (stormy - test): {len(test_examples)} pairs of sentences")
+
+            test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
+            test = CrisisFactsDataset(test_csv_path,
+                                      label_pkl=str(Path(
+                                          f"./data/crisisfacts_data/{self.task}/labels_crisisfacts_test.pkl").absolute()),
+                                      sentence_pairs_indices_pkl=str(Path(
+                                          f"./data/crisisfacts_data/{self.task}/sentence_pairs_indices_crisisfacts_test.pkl").absolute()),
+                                      sample_indices_path=str(Path(
+                                          f"./data/crisisfacts_data/{self.task}/sample_indices_crisisfacts_test.json").absolute()),
+                                      subset=self.subset,
+                                      task=self.task,
+                                      data_type="test")
+            test_labels = test.labels
+            test_titles = test.df["title"].values
+            test_examples_crisisfact_test = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
+                                                                 test_titles[test.sentence_pairs_indices[i][1]]],
+                                                          label=test_labels[i]) for i in range(len(test))]
+            logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact_test)} pairs of sentences")
+            return test_examples, test_examples_crisisfact_test
+
+    def train(self, task_validation: False):
         logger.info(f"Preparing training and validation dataset.")
-        training_data, validation_data = self.prepare_data(test=False)
+        if task_validation:
+            training_data, validation_data = self.prepare_task_validation_data(test=False)
+        else:
+            training_data, validation_data = self.prepare_data(test=False)
 
         training_dataset = SentencesDataset(training_data, self.model)
         validation_dataset = SentencesDataset(validation_data, self.model)
@@ -178,25 +236,18 @@ class EventPairwiseTemporalityModel(object):
                        output_path=str(Path("./outputs", self.exp_name, self.task)),
                        show_progress_bar=True,
                        save_best_model=True
-                      )
+                  )
 
-    def test(self):
+    def test(self, task_validation: False):
         logger.info(f"Testing on stormy test set...")
-        testing_data, testing_data_crisisfacts_full, testing_data_crisisfacts_test = self.prepare_data(test=True)
+        if task_validation:
+            testing_data, testing_data_crisisfacts_test = self.prepare_task_validation_data(test=True)
+        else:
+            testing_data, testing_data_crisisfacts_test = self.prepare_data(test=True)
         testing_dataset = SentencesDataset(testing_data, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
                                                               name=f'test_{self.exp_name}_{self.task}',
-                                                              softmax_model=self.train_loss)
-
-        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
-
-
-        logger.info(f"Testing on Crisisfacts full set...")
-        testing_dataset = SentencesDataset(testing_data_crisisfacts_full, self.model)
-        testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
-        testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
-                                                              name=f'test_crisisfacts_full_{self.exp_name}_{self.task}',
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
@@ -224,7 +275,7 @@ class EventPairwiseTemporalityModel(object):
             Path("./outputs", exp_name, task, "validation").mkdir()
         if not Path("./outputs", exp_name, task, "test").exists():
             Path("./outputs", exp_name, task, "test").mkdir()
-            
+
     @property
     def device(self):
         if torch.cuda.is_available():
@@ -234,15 +285,18 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    tasks = ["combined", "event_deduplication", "event_temporality"]
+    tasks = ["event_deduplication", "event_temporality"]
     for task in tasks:
         model = EventPairwiseTemporalityModel(batch_size=512,
-                                              num_epochs=1,
-                                              exp_name="test",
+                                              num_epochs=5,
+                                              exp_name="v1",
                                               transformer_model='distilbert-base-uncased',
                                               subset=1,
-                                              load_pretrained=True,
+                                              load_pretrained=False,
                                               task=task)
-        model.train()
-        model.test()
-
+        # training_data, validation_data = model.prepare_task_validation_data(test=False)
+        # testing_data, testing_data_crisisfacts_test = model.prepare_task_validation_data(test=True)
+        model.train(task_validation=False)
+        model.test(task_validation=False)
+        model.train(task_validation=True)
+        model.test(task_validation=True)
