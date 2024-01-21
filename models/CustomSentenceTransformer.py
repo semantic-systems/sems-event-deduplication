@@ -34,7 +34,7 @@ class CustomSentenceTransformer(SentenceTransformer):
                     self.save(output_path)
                     if not Path(output_path, "classifier").exists():
                         Path(output_path, "classifier").mkdir()
-                    evaluator.softmax_model.save(str(Path(output_path, "Classifier")))
+                    torch.save(evaluator.softmax_model.linear.classifier.state_dict(), Path(output_path, "Classifier"))
 
 
 class InferenceModel(object):
