@@ -247,7 +247,7 @@ class EventPairwiseTemporalityModel(object):
         else:
             testing_data, testing_data_crisisfacts_test = self.prepare_data(test=True)
         testing_dataset = SentencesDataset(testing_data, self.model)
-        testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
+        testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
                                                               name=f'test_{self.exp_name}_{self.task}',
                                                               softmax_model=self.train_loss)
@@ -256,7 +256,7 @@ class EventPairwiseTemporalityModel(object):
 
         logger.info(f"Testing on Crisisfacts test set...")
         testing_dataset = SentencesDataset(testing_data_crisisfacts_test, self.model)
-        testing_dataloader = DataLoader(testing_dataset, shuffle=True, batch_size=self.batch_size)
+        testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
                                                               name=f'test_crisisfacts_test_{self.exp_name}_{self.task}',
                                                               softmax_model=self.train_loss)
