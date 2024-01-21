@@ -1,6 +1,7 @@
 *.numbers
 *.pkl
-models/outputs/
+models/
+outputs/
 *.csv
 *.ipynb
 data/gdelt_crawled/
