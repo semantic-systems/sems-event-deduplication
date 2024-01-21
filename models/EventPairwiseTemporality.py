@@ -286,17 +286,31 @@ class EventPairwiseTemporalityModel(object):
 
 if __name__ == "__main__":
     tasks = ["event_deduplication", "event_temporality"]
-    for task in tasks:
-        model = EventPairwiseTemporalityModel(batch_size=512,
-                                              num_epochs=5,
-                                              exp_name="v1",
-                                              transformer_model='distilbert-base-uncased',
-                                              subset=1,
-                                              load_pretrained=False,
-                                              task=task)
-        # training_data, validation_data = model.prepare_task_validation_data(test=False)
-        # testing_data, testing_data_crisisfacts_test = model.prepare_task_validation_data(test=True)
-        model.train(task_validation=False)
-        model.test(task_validation=False)
-        model.train(task_validation=True)
-        model.test(task_validation=True)
+    # for task in tasks:
+    model = EventPairwiseTemporalityModel(batch_size=512,
+                                          num_epochs=2,
+                                          exp_name="v1",
+                                          transformer_model='distilbert-base-uncased',
+                                          subset=1,
+                                          load_pretrained=True,
+                                          task="event_deduplication")
+    # training_data, validation_data = model.prepare_task_validation_data(test=False)
+    # testing_data, testing_data_crisisfacts_test = model.prepare_task_validation_data(test=True)
+    # model.train(task_validation=False)
+    model.test(task_validation=False)
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+    model = EventPairwiseTemporalityModel(batch_size=512,
+                                          num_epochs=2,
+                                          exp_name="v1",
+                                          transformer_model='distilbert-base-uncased',
+                                          subset=1,
+                                          load_pretrained=True,
+                                          task="event_temporality")
+    # training_data, validation_data = model.prepare_task_validation_data(test=False)
+    # testing_data, testing_data_crisisfacts_test = model.prepare_task_validation_data(test=True)
+    model.train(task_validation=False)
+    model.test(task_validation=False)
+    model.train(task_validation=True)
+    model.test(task_validation=True)
