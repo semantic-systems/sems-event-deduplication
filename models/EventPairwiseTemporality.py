@@ -5,7 +5,7 @@ import logging
 import torch.cuda
 from torch import nn
 from sentence_transformers import SentencesDataset, losses, models, InputExample
-from models.CustomSentenceTransformer import CustomSentenceTransformer
+from CustomSentenceTransformer import CustomSentenceTransformer
 from torch.utils.data import DataLoader
 from Datasets import StormyDataset, CrisisFactsDataset
 from EventPairwiseTemporalityEvaluator import EventPairwiseTemporalityEvaluator
