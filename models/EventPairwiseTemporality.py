@@ -259,7 +259,7 @@ class EventPairwiseTemporalityModel(object):
                                                               name=f'test_crisisfacts_test_{self.exp_name}_{self.task}',
                                                               softmax_model=self.train_loss)
 
-        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task)))
+        testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
 
     @staticmethod
     def prepare_environment(exp_name, task):

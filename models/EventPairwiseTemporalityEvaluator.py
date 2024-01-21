@@ -80,7 +80,7 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
         if output_path is not None and self.write_csv:
             csv_path = Path(output_path, self.csv_file).absolute()
             if self.write_predictions:
-                y_predict.dump(Path(output_path, f"{self.name}_labels.pkl").absolute())
+                y_true.dump(Path(output_path, f"{self.name}_labels.pkl").absolute())
                 y_predict.dump(Path(output_path, f"{self.name}_prediction.pkl").absolute())
 
             if not os.path.isfile(csv_path):
