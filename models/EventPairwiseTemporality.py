@@ -233,7 +233,7 @@ class EventPairwiseTemporalityModel(object):
         self.model.fit(train_objectives=[(training_dataloader, self.train_loss)],
                        evaluator=validation_evaluator,
                        epochs=self.num_epochs,
-                       evaluation_steps=10000,
+                       evaluation_steps=1000,
                        warmup_steps=warmup_steps,
                        output_path=str(Path("./outputs", self.exp_name, self.task)),
                        show_progress_bar=True,
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     # model.train(task_validation=False)
     # model.test(task_validation=False)
 
-    model = EventPairwiseTemporalityModel(batch_size=512,
+    model = EventPairwiseTemporalityModel(batch_size=400,
                                           num_epochs=1,
                                           exp_name="v1",
                                           transformer_model='distilbert-base-uncased',
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    model = EventPairwiseTemporalityModel(batch_size=512,
+    model = EventPairwiseTemporalityModel(batch_size=400,
                                           num_epochs=1,
                                           exp_name="v1",
                                           transformer_model='distilbert-base-uncased',
