@@ -76,6 +76,10 @@ class StormyDataset(torch.utils.data.Dataset):
         self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
                                                                    sentence_pairs_indices=self.sentence_pairs_indices,
                                                                    sample_indices_path=sample_indices_path)
+        stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
+        self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels, save_path=stratified_sample_indices_path)
+        self.labels = [self.label2int[label] for label in self.labels]
+
         self.end_index = round(subset * len(self.sentence_pairs_indices))
         self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
         self.get_descriptions()
@@ -125,7 +129,6 @@ class StormyDataset(torch.utils.data.Dataset):
             logger.info(f"Balanced labels created. Storing locally ({label_pkl}).")
             with open(label_pkl, 'wb') as file:
                 pickle.dump(labels, file)
-        labels = [self.label2int[label] for label in labels]
         return labels, sentence_pairs_indices
 
     @staticmethod
@@ -157,6 +160,43 @@ class StormyDataset(torch.utils.data.Dataset):
         logger.info(f"Creating balanced dataset...")
         sample_indices = list(chain(*list(sample_indices.values())))
         return [labels[i] for i in sample_indices], [sentence_pairs_indices[i] for i in sample_indices]
+
+    @staticmethod
+    def stratified_sample(list_data, list_labels, ratio=0.005, random_seed=42, save_path=None):
+        if not Path(save_path).exists():
+            # Create a dictionary to store indices for each label
+            label_indices = {}
+            for i, label in enumerate(list_labels):
+                if label not in label_indices:
+                    label_indices[label] = []
+                label_indices[label].append(i)
+
+            # Determine the number of samples to draw for each label
+            num_samples_per_label = {label: int(len(indices) * ratio) for label, indices in label_indices.items()}
+
+            # Set random seed for reproducibility
+            random.seed(random_seed)
+
+            # Sample from each label category while maintaining balance
+            sampled_indices = []
+            for label, num_samples in num_samples_per_label.items():
+                sampled_indices.extend(random.sample(label_indices[label], num_samples))
+
+            # Sort the sampled indices for consistent order
+            sampled_indices.sort()
+
+            with open(save_path, 'wb') as file:
+                pickle.dump(sampled_indices, file)
+        else:
+            with open(save_path, 'rb') as file:
+                sampled_indices = pickle.load(file)
+        # Create sampled lists based on the sampled indices
+        sampled_data = [list_data[i] for i in sampled_indices]
+        sampled_labels = [list_labels[i] for i in sampled_indices]
+        logger.info(f"Stratified sentence pairs length: {len(sampled_data)}).")
+        logger.info(f"Stratified labels length: {len(sampled_labels)}).")
+
+        return sampled_data, sampled_labels
 
     def get_label(self, index_tuple):
         clusters = self.df.new_cluster.values
@@ -228,6 +268,11 @@ class CrisisFactsDataset(StormyDataset):
         self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
                                                                    sentence_pairs_indices=self.sentence_pairs_indices,
                                                                    sample_indices_path=sample_indices_path)
+        stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
+        self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels,
+                                                                          save_path=stratified_sample_indices_path)
+        self.labels = [self.label2int[label] for label in self.labels]
+
         self.end_index = round(subset * len(self.sentence_pairs_indices))
         self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
         self.get_descriptions()
