@@ -298,7 +298,7 @@ if __name__ == "__main__":
     # model.train(task_validation=False)
     # model.test(task_validation=False)
 
-    model = EventPairwiseTemporalityModel(batch_size=400,
+    model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=1,
                                           exp_name="v1",
                                           transformer_model='distilbert-base-uncased',
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    model = EventPairwiseTemporalityModel(batch_size=400,
+    model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=1,
                                           exp_name="v1",
                                           transformer_model='distilbert-base-uncased',

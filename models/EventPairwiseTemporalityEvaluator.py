@@ -1,6 +1,7 @@
 import os
 import csv
 from pathlib import Path
+from tqdm import tqdm
 
 import numpy as np
 from sentence_transformers.evaluation import LabelAccuracyEvaluator
@@ -45,7 +46,7 @@ class EventPairwiseTemporalityEvaluator(LabelAccuracyEvaluator):
         logger.info("Evaluation on the "+self.name+" dataset"+out_txt)
         self.dataloader.collate_fn = model.smart_batching_collate
 
-        for step, batch in enumerate(self.dataloader):
+        for step, batch in tqdm(enumerate(self.dataloader)):
             features, label_ids = batch
             y_true.append(label_ids)
             for idx in range(len(features)):
