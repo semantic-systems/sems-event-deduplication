@@ -4,8 +4,7 @@ import logging
 
 import torch.cuda
 from torch import nn
-from sentence_transformers import SentencesDataset, losses, models, InputExample
-from CustomSentenceTransformer import CustomSentenceTransformer
+from sentence_transformers import SentencesDataset, losses, models, InputExample, SentenceTransformer
 from torch.utils.data import DataLoader
 from Datasets import StormyDataset, CrisisFactsDataset
 from EventPairwiseTemporalityEvaluator import EventPairwiseTemporalityEvaluator
@@ -37,13 +36,13 @@ class EventPairwiseTemporalityModel(object):
         dense_model = models.Dense(in_features=pooling_model.get_sentence_embedding_dimension(),
                                    out_features=256, activation_function=nn.Tanh())
         if not load_pretrained:
-            self.model = CustomSentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model], device=self.device)
+            self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model], device=self.device)
         else:
             if Path("./outputs", exp_name, task, "pytorch_model.bin").exists():
-                self.model = CustomSentenceTransformer(str(Path("./outputs", exp_name, task).absolute()), device=self.device)
+                self.model = SentenceTransformer(str(Path("./outputs", exp_name, task).absolute()), device=self.device)
             else:
-                self.model = CustomSentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model],
-                                                       device=self.device)
+                self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model],
+                                                 device=self.device)
         self.train_loss = losses.SoftmaxLoss(model=self.model,
                                              sentence_embedding_dimension=self.model.get_sentence_embedding_dimension(),
                                              num_labels=len(self.label2int))
