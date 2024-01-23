@@ -65,7 +65,8 @@ class StormyDataset(torch.utils.data.Dataset):
                  sample_indices_path: str,
                  subset: float = 1.0,
                  task: str = "combined",
-                 data_type: str = "train"):
+                 data_type: str = "train",
+                 ratio: float = 0.1):
         random.seed(4)
         self.data_type = data_type
         self.task = task
@@ -78,7 +79,9 @@ class StormyDataset(torch.utils.data.Dataset):
                                                                    sample_indices_path=sample_indices_path)
         stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
         stratified_sample_indices_path = stratified_sample_indices_path.replace("json", "pkl")
-        self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels, save_path=stratified_sample_indices_path)
+        self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels,
+                                                                          save_path=stratified_sample_indices_path,
+                                                                          ratio=ratio)
         self.labels = [self.label2int[label] for label in self.labels]
 
         self.end_index = round(subset * len(self.sentence_pairs_indices))
@@ -258,7 +261,8 @@ class CrisisFactsDataset(StormyDataset):
                  sample_indices_path: str,
                  subset: float = 1.0,
                  task: str = "combined",
-                 data_type: str = "train"):
+                 data_type: str = "train",
+                 ratio: float = 0.01):
         super().__init__(csv_path, label_pkl, sentence_pairs_indices_pkl, sample_indices_path, subset, task, data_type)
         random.seed(4)
         self.df = pd.read_csv(csv_path)
@@ -271,7 +275,8 @@ class CrisisFactsDataset(StormyDataset):
                                                                    sample_indices_path=sample_indices_path)
         stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
         self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels,
-                                                                          save_path=stratified_sample_indices_path)
+                                                                          save_path=stratified_sample_indices_path,
+                                                                          ratio=ratio)
         self.labels = [self.label2int[label] for label in self.labels]
 
         self.end_index = round(subset * len(self.sentence_pairs_indices))

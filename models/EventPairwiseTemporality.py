@@ -73,7 +73,8 @@ class EventPairwiseTemporalityModel(object):
                                       f"./data/stormy_data/{self.task}/sample_indices_train.json").absolute()),
                                   subset=self.subset,
                                   task=self.task,
-                                  data_type="train")
+                                  data_type="train",
+                                  ratio=0.1)
             valid = StormyDataset(valid_csv_path,
                                   label_pkl=str(Path(
                                       f"./data/stormy_data/{self.task}/labels_valid.pkl").absolute()),
@@ -83,7 +84,8 @@ class EventPairwiseTemporalityModel(object):
                                       f"./data/stormy_data/{self.task}/sample_indices_valid.json").absolute()),
                                   subset=self.subset,
                                   task=self.task,
-                                  data_type="valid")
+                                  data_type="valid",
+                                  ratio=0.1)
             train_labels = train.labels
             train_titles = train.df["title"].values
             valid_labels = valid.labels
@@ -106,7 +108,8 @@ class EventPairwiseTemporalityModel(object):
                                      f"./data/stormy_data/{self.task}/sample_indices_test.json").absolute()),
                                  subset=self.subset,
                                  task=self.task,
-                                 data_type="test")
+                                 data_type="test",
+                                 ratio=0.1)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -124,7 +127,8 @@ class EventPairwiseTemporalityModel(object):
                                           f"./data/crisisfacts_data/{self.task}/sample_indices_crisisfacts_test.json").absolute()),
                                       subset=self.subset,
                                       task=self.task,
-                                      data_type="test")
+                                      data_type="test",
+                                      ratio=0.05)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples_crisisfact_test = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -146,7 +150,8 @@ class EventPairwiseTemporalityModel(object):
                                       f"./data/crisisfacts_data/{self.task}/sample_indices_train.json").absolute()),
                                   subset=self.subset,
                                   task=self.task,
-                                  data_type="train")
+                                  data_type="train",
+                                  ratio=0.05)
             valid = CrisisFactsDataset(valid_csv_path,
                                   label_pkl=str(Path(
                                       f"./data/crisisfacts_data/{self.task}/labels_valid.pkl").absolute()),
@@ -156,7 +161,8 @@ class EventPairwiseTemporalityModel(object):
                                       f"./data/crisisfacts_data/{self.task}/sample_indices_valid.json").absolute()),
                                   subset=self.subset,
                                   task=self.task,
-                                  data_type="valid")
+                                  data_type="valid",
+                                  ratio=0.05)
             train_labels = train.labels
             train_titles = train.df["title"].values
             valid_labels = valid.labels
@@ -179,7 +185,8 @@ class EventPairwiseTemporalityModel(object):
                                      f"./data/stormy_data/{self.task}/sample_indices_test.json").absolute()),
                                  subset=self.subset,
                                  task=self.task,
-                                 data_type="test")
+                                 data_type="test",
+                                 ratio=0.1)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -197,7 +204,8 @@ class EventPairwiseTemporalityModel(object):
                                           f"./data/crisisfacts_data/{self.task}/sample_indices_crisisfacts_test.json").absolute()),
                                       subset=self.subset,
                                       task=self.task,
-                                      data_type="test")
+                                      data_type="test",
+                                      ratio=0.05)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples_crisisfact_test = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
