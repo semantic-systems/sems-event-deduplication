@@ -74,7 +74,7 @@ class EventPairwiseTemporalityModel(object):
                                   subset=self.subset,
                                   task=self.task,
                                   data_type="train",
-                                  ratio=0.1)
+                                  ratio=0.3)
             valid = StormyDataset(valid_csv_path,
                                   label_pkl=str(Path(
                                       f"./data/stormy_data/{self.task}/labels_valid.pkl").absolute()),
@@ -85,7 +85,7 @@ class EventPairwiseTemporalityModel(object):
                                   subset=self.subset,
                                   task=self.task,
                                   data_type="valid",
-                                  ratio=0.1)
+                                  ratio=0.3)
             train_labels = train.labels
             train_titles = train.df["title"].values
             valid_labels = valid.labels
@@ -109,7 +109,7 @@ class EventPairwiseTemporalityModel(object):
                                  subset=self.subset,
                                  task=self.task,
                                  data_type="test",
-                                 ratio=0.1)
+                                 ratio=0.3)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -128,7 +128,7 @@ class EventPairwiseTemporalityModel(object):
                                       subset=self.subset,
                                       task=self.task,
                                       data_type="test",
-                                      ratio=0.05)
+                                      ratio=0.1)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples_crisisfact_test = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -151,7 +151,7 @@ class EventPairwiseTemporalityModel(object):
                                   subset=self.subset,
                                   task=self.task,
                                   data_type="train",
-                                  ratio=0.05)
+                                  ratio=0.1)
             valid = CrisisFactsDataset(valid_csv_path,
                                   label_pkl=str(Path(
                                       f"./data/crisisfacts_data/{self.task}/labels_valid.pkl").absolute()),
@@ -162,7 +162,7 @@ class EventPairwiseTemporalityModel(object):
                                   subset=self.subset,
                                   task=self.task,
                                   data_type="valid",
-                                  ratio=0.05)
+                                  ratio=0.1)
             train_labels = train.labels
             train_titles = train.df["title"].values
             valid_labels = valid.labels
@@ -186,7 +186,7 @@ class EventPairwiseTemporalityModel(object):
                                  subset=self.subset,
                                  task=self.task,
                                  data_type="test",
-                                 ratio=0.1)
+                                 ratio=0.3)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -205,7 +205,7 @@ class EventPairwiseTemporalityModel(object):
                                       subset=self.subset,
                                       task=self.task,
                                       data_type="test",
-                                      ratio=0.05)
+                                      ratio=0.1)
             test_labels = test.labels
             test_titles = test.df["title"].values
             test_examples_crisisfact_test = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
@@ -295,7 +295,7 @@ class EventPairwiseTemporalityModel(object):
 
 if __name__ == "__main__":
     model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=2,
+                                          num_epochs=4,
                                           exp_name="v4",
                                           transformer_model='distilbert-base-uncased',
                                           subset=1,
@@ -306,7 +306,7 @@ if __name__ == "__main__":
     model.test(task_validation=False)
 
     model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=2,
+                                          num_epochs=4,
                                           exp_name="v4",
                                           transformer_model='distilbert-base-uncased',
                                           subset=1,
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     model.test(task_validation=True)
 
     model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=2,
+                                          num_epochs=4,
                                           exp_name="v4",
                                           transformer_model='distilbert-base-uncased',
                                           subset=1,
@@ -326,7 +326,7 @@ if __name__ == "__main__":
     model.test(task_validation=False)
 
     model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=2,
+                                          num_epochs=4,
                                           exp_name="v4",
                                           transformer_model='distilbert-base-uncased',
                                           subset=1,

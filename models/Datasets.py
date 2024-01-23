@@ -1,6 +1,5 @@
 import json
 from collections import Counter
-from datetime import datetime
 import logging
 import numpy as np
 import pandas as pd
@@ -166,8 +165,8 @@ class StormyDataset(torch.utils.data.Dataset):
         return [labels[i] for i in sample_indices], [sentence_pairs_indices[i] for i in sample_indices]
 
     @staticmethod
-    def stratified_sample(list_data, list_labels, ratio=0.01, random_seed=42, save_path=None):
-        if not Path(save_path).exists():
+    def stratified_sample(list_data, list_labels, ratio=0.01, random_seed=42, save_path=None, forced=True):
+        if not Path(save_path).exists() and not forced:
             # Create a dictionary to store indices for each label
             label_indices = {}
             for i, label in enumerate(list_labels):
