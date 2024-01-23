@@ -286,20 +286,20 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    # model = EventPairwiseTemporalityModel(batch_size=512,
-    #                                       num_epochs=2,
-    #                                       exp_name="v1",
-    #                                       transformer_model='distilbert-base-uncased',
-    #                                       subset=1,
-    #                                       load_pretrained=False,
-    #                                       task="event_deduplication")
-    #
-    # model.train(task_validation=False)
-    # model.test(task_validation=False)
+    model = EventPairwiseTemporalityModel(batch_size=512,
+                                          num_epochs=2,
+                                          exp_name="v4",
+                                          transformer_model='distilbert-base-uncased',
+                                          subset=1,
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+
+    model.train(task_validation=False)
+    model.test(task_validation=False)
 
     model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=1,
-                                          exp_name="v1",
+                                          num_epochs=2,
+                                          exp_name="v4",
                                           transformer_model='distilbert-base-uncased',
                                           subset=1,
                                           load_pretrained=False,
@@ -308,8 +308,8 @@ if __name__ == "__main__":
     model.test(task_validation=True)
 
     model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=1,
-                                          exp_name="v1",
+                                          num_epochs=2,
+                                          exp_name="v4",
                                           transformer_model='distilbert-base-uncased',
                                           subset=1,
                                           load_pretrained=False,
@@ -318,8 +318,8 @@ if __name__ == "__main__":
     model.test(task_validation=False)
 
     model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=1,
-                                          exp_name="v1",
+                                          num_epochs=2,
+                                          exp_name="v4",
                                           transformer_model='distilbert-base-uncased',
                                           subset=1,
                                           load_pretrained=False,

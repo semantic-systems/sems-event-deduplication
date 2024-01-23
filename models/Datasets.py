@@ -77,6 +77,7 @@ class StormyDataset(torch.utils.data.Dataset):
                                                                    sentence_pairs_indices=self.sentence_pairs_indices,
                                                                    sample_indices_path=sample_indices_path)
         stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
+        stratified_sample_indices_path = stratified_sample_indices_path.replace("json", "pkl")
         self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels, save_path=stratified_sample_indices_path)
         self.labels = [self.label2int[label] for label in self.labels]
 
@@ -162,7 +163,7 @@ class StormyDataset(torch.utils.data.Dataset):
         return [labels[i] for i in sample_indices], [sentence_pairs_indices[i] for i in sample_indices]
 
     @staticmethod
-    def stratified_sample(list_data, list_labels, ratio=0.005, random_seed=42, save_path=None):
+    def stratified_sample(list_data, list_labels, ratio=0.01, random_seed=42, save_path=None):
         if not Path(save_path).exists():
             # Create a dictionary to store indices for each label
             label_indices = {}
@@ -316,10 +317,7 @@ class CrisisFactsDataset(StormyDataset):
 
     @staticmethod
     def round_to_day(timestamp):
-        dt_object = datetime.utcfromtimestamp(timestamp)
-        rounded_dt = dt_object.replace(hour=0, minute=0, second=0, microsecond=0)
-        rounded_timestamp = int(rounded_dt.timestamp())
-        return rounded_timestamp
+        return timestamp - (timestamp % 86400)
 
     def get_descriptions(self):
         print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries.")
