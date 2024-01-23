@@ -81,6 +81,7 @@ class EventDeduplicationDataFrame(object):
         print(f"OOS removed dataset - Number of entires: {len(df)}")
         self.clustering_analysis(df, forced=False)
         self.merge_cluster(df)
+
     @staticmethod
     def aggregate_news():
         gdelt_news = NaturalDisasterGdelt()

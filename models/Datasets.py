@@ -54,6 +54,8 @@ def split_crisisfacts_dataset():
     train_df.to_csv("./data/crisisfacts_data/crisisfacts_train.csv", index=False)
     valid_df.to_csv("./data/crisisfacts_data/crisisfacts_valid.csv", index=False)
     test_df.to_csv("./data/crisisfacts_data/crisisfacts_test.csv", index=False)
+    storm_df = df.loc[df["event_type"].isin(["Hurricane Florence 2018", "Hurricane Sally 2020", "Hurricane Laura 2020", "2018 Maryland Flood"])]
+    storm_df.to_csv("./data/crisisfacts_data/crisisfacts_storm.csv", index=False)
 
 
 class StormyDataset(torch.utils.data.Dataset):
@@ -166,7 +168,7 @@ class StormyDataset(torch.utils.data.Dataset):
 
     @staticmethod
     def stratified_sample(list_data, list_labels, ratio=0.01, random_seed=42, save_path=None, forced=True):
-        if not Path(save_path).exists() and not forced:
+        if not Path(save_path).exists() and forced:
             # Create a dictionary to store indices for each label
             label_indices = {}
             for i, label in enumerate(list_labels):
@@ -209,9 +211,9 @@ class StormyDataset(torch.utils.data.Dataset):
             if cluster_i != cluster_j:
                 return "different_event"
             else:
-                unix_times = self.df.normalized_date.values
-                unix_time_i = unix_times[index_tuple[0]]
-                unix_time_j = unix_times[index_tuple[1]]
+                unix_times = self.df.seendate.values
+                unix_time_i = unix_times[index_tuple[0]][:8]
+                unix_time_j = unix_times[index_tuple[1]][:8]
                 if unix_time_i < unix_time_j:
                     label = "earlier"
                 elif unix_time_i == unix_time_j:
@@ -228,9 +230,9 @@ class StormyDataset(torch.utils.data.Dataset):
             if cluster_i != cluster_j:
                 return "ignored"
             else:
-                unix_times = self.df.normalized_date.values
-                unix_time_i = unix_times[index_tuple[0]]
-                unix_time_j = unix_times[index_tuple[1]]
+                unix_times = self.df.seendate.values
+                unix_time_i = unix_times[index_tuple[0]][:8]
+                unix_time_j = unix_times[index_tuple[1]][:8]
                 if unix_time_i < unix_time_j:
                     label = "earlier"
                 elif unix_time_i == unix_time_j:
