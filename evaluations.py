@@ -71,13 +71,14 @@ if __name__ == "__main__":
     for data_type in data_types:
         for task in tasks:
             for exp_name in exp_names:
-                label_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_labels.pkl"
-                prediction_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_prediction.pkl"
-                stratified_sample_indices_path = f"./data/{data_type}/{task}/stratified_sample_indices_test.pkl"
-                sentence_pairs_indices_path = f"./data/{data_type}/{task}/sentence_pairs_indices_test.pkl"
-                df_path = f"./data/{data_type}/crisisfacts_test.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/test_v2.csv"
-                df = pd.read_csv(df_path)
-                output_path = f"./data/{data_type}/{task}/test_df_{exp_name}.csv"
-                test_df = get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path,
-                                                     sentence_pairs_indices_path, output_path)
-                print(f"sentence pair df saved in {output_path}")
+                for mode in ["train", "valid", "test"]:
+                    label_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_labels.pkl"
+                    prediction_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_prediction.pkl"
+                    stratified_sample_indices_path = f"./data/{data_type}/{task}/stratified_sample_indices_test.pkl"
+                    sentence_pairs_indices_path = f"./data/{data_type}/{task}/sentence_pairs_indices_test.pkl"
+                    df_path = f"./data/{data_type}/crisisfacts_{mode}.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/{mode}_v2.csv"
+                    df = pd.read_csv(df_path)
+                    output_path = f"./data/{data_type}/{task}/{mode}_df_{exp_name}.csv"
+                    df = get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path,
+                                                         sentence_pairs_indices_path, output_path)
+                    print(f"sentence pair df (len: {len(df)}) saved in {output_path}")
