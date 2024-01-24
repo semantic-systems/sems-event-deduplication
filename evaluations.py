@@ -71,7 +71,7 @@ if __name__ == "__main__":
     for data_type in data_types:
         for task in tasks:
             for exp_name in exp_names:
-                for mode in ["train", "valid", "test"]:
+                for mode in ["test"]:
                     label_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{task}_labels.pkl"
                     prediction_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{task}_prediction.pkl"
                     stratified_sample_indices_path = f"./data/{data_type}/{task}/stratified_sample_indices_{mode}.pkl"

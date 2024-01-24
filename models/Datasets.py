@@ -275,6 +275,7 @@ class CrisisFactsDataset(StormyDataset):
                                                                    sentence_pairs_indices=self.sentence_pairs_indices,
                                                                    sample_indices_path=sample_indices_path)
         stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
+        stratified_sample_indices_path = stratified_sample_indices_path.replace("json", "pkl")
         self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels,
                                                                           save_path=stratified_sample_indices_path,
                                                                           ratio=ratio)

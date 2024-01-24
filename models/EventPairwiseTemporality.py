@@ -96,7 +96,7 @@ class EventPairwiseTemporalityModel(object):
             valid_examples = [InputExample(texts=[valid_titles[valid.sentence_pairs_indices[i][0]],
                                                   valid_titles[valid.sentence_pairs_indices[i][1]]],
                                            label=valid_labels[i]) for i in range(len(valid))]
-            return train_examples, valid_examples
+            return train_examples, valid_examples, None
         else:
             test_csv_path = Path(f"./data/stormy_data/test_v2.csv")
             test = StormyDataset(test_csv_path,
@@ -135,7 +135,26 @@ class EventPairwiseTemporalityModel(object):
                                                             test_titles[test.sentence_pairs_indices[i][1]]],
                                                      label=test_labels[i]) for i in range(len(test))]
             logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact_test)} pairs of sentences")
-            return test_examples, test_examples_crisisfact_test
+
+            test_csv_path = Path("./data/crisisfacts_data/crisisfacts_storm.csv")
+            test = CrisisFactsDataset(test_csv_path,
+                                      label_pkl=str(Path(
+                                          f"./data/crisisfacts_data/{self.task}/labels_test_storm.pkl").absolute()),
+                                      sentence_pairs_indices_pkl=str(Path(
+                                          f"./data/crisisfacts_data/{self.task}/sentence_pairs_indices_test_storm.pkl").absolute()),
+                                      sample_indices_path=str(Path(
+                                          f"./data/crisisfacts_data/{self.task}/sample_indices_test_storm.json").absolute()),
+                                      subset=self.subset,
+                                      task=self.task,
+                                      data_type="test",
+                                      ratio=0.1)
+            test_labels = test.labels
+            test_titles = test.df["title"].values
+            test_examples_crisisfact_test_storm = [InputExample(texts=[test_titles[test.sentence_pairs_indices[i][0]],
+                                                                 test_titles[test.sentence_pairs_indices[i][1]]],
+                                                          label=test_labels[i]) for i in range(len(test))]
+            logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact_test)} pairs of sentences")
+            return test_examples, test_examples_crisisfact_test, test_examples_crisisfact_test_storm
 
     def prepare_task_validation_data(self, test=False):
         if not test:
@@ -173,7 +192,7 @@ class EventPairwiseTemporalityModel(object):
             valid_examples = [InputExample(texts=[valid_titles[valid.sentence_pairs_indices[i][0]],
                                                   valid_titles[valid.sentence_pairs_indices[i][1]]],
                                            label=valid_labels[i]) for i in range(len(valid))]
-            return train_examples, valid_examples
+            return train_examples, valid_examples, None
         else:
             test_csv_path = Path(f"./data/stormy_data/test_v2.csv")
             test = StormyDataset(test_csv_path,
@@ -212,14 +231,14 @@ class EventPairwiseTemporalityModel(object):
                                                                  test_titles[test.sentence_pairs_indices[i][1]]],
                                                           label=test_labels[i]) for i in range(len(test))]
             logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact_test)} pairs of sentences")
-            return test_examples, test_examples_crisisfact_test
+            return test_examples, test_examples_crisisfact_test, None
 
     def train(self, task_validation: False):
         logger.info(f"Preparing training and validation dataset.")
         if task_validation:
-            training_data, validation_data = self.prepare_task_validation_data(test=False)
+            training_data, validation_data, _ = self.prepare_task_validation_data(test=False)
         else:
-            training_data, validation_data = self.prepare_data(test=False)
+            training_data, validation_data, _ = self.prepare_data(test=False)
 
         training_dataset = SentencesDataset(training_data, self.model)
         validation_dataset = SentencesDataset(validation_data, self.model)
@@ -250,9 +269,9 @@ class EventPairwiseTemporalityModel(object):
     def test(self, task_validation: False):
         logger.info(f"Testing on stormy test set...")
         if task_validation:
-            testing_data, testing_data_crisisfacts_test = self.prepare_task_validation_data(test=True)
+            testing_data, testing_data_crisisfacts_test, test_examples_crisisfact_test_storm = self.prepare_task_validation_data(test=True)
         else:
-            testing_data, testing_data_crisisfacts_test = self.prepare_data(test=True)
+            testing_data, testing_data_crisisfacts_test, test_examples_crisisfact_test_storm = self.prepare_data(test=True)
         testing_dataset = SentencesDataset(testing_data, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
@@ -269,6 +288,16 @@ class EventPairwiseTemporalityModel(object):
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
+
+        if test_examples_crisisfact_test_storm is not None:
+            logger.info(f"Testing on Crisisfacts storm set...")
+            testing_dataset = SentencesDataset(test_examples_crisisfact_test_storm, self.model)
+            testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
+            testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
+                                                                  name=f'test_{self.exp_name}_{self.task}_storm',
+                                                                  softmax_model=self.train_loss)
+
+            testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
 
     @staticmethod
     def prepare_environment(exp_name, task):
@@ -294,26 +323,26 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=2,
-                                          exp_name="v5",
-                                          transformer_model='distilbert-base-uncased',
-                                          subset=1,
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
-    model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=2,
-                                          exp_name="v5",
-                                          transformer_model='distilbert-base-uncased',
-                                          subset=1,
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-    model.train(task_validation=True)
-    model.test(task_validation=True)
+    # model = EventPairwiseTemporalityModel(batch_size=512,
+    #                                       num_epochs=2,
+    #                                       exp_name="v5",
+    #                                       transformer_model='distilbert-base-uncased',
+    #                                       subset=1,
+    #                                       load_pretrained=False,
+    #                                       task="event_deduplication")
+    #
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
+    #
+    # model = EventPairwiseTemporalityModel(batch_size=256,
+    #                                       num_epochs=2,
+    #                                       exp_name="v5",
+    #                                       transformer_model='distilbert-base-uncased',
+    #                                       subset=1,
+    #                                       load_pretrained=False,
+    #                                       task="event_deduplication")
+    # model.train(task_validation=True)
+    # model.test(task_validation=True)
 
     model = EventPairwiseTemporalityModel(batch_size=512,
                                           num_epochs=2,
