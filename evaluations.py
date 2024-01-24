@@ -73,8 +73,8 @@ if __name__ == "__main__":
             for exp_name in exp_names:
                 label_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_labels.pkl"
                 prediction_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_prediction.pkl"
-                stratified_sample_indices_path = f"./data/stormy_data/{task}/stratified_sample_indices_test.pkl"
-                sentence_pairs_indices_path = f"./data/stormy_data/{task}/sentence_pairs_indices_test.pkl"
+                stratified_sample_indices_path = f"./data/{data_type}/{task}/stratified_sample_indices_test.pkl"
+                sentence_pairs_indices_path = f"./data/{data_type}/{task}/sentence_pairs_indices_test.pkl"
                 df_path = f"./data/{data_type}/crisisfacts_test.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/test_v2.csv"
                 df = pd.read_csv(df_path)
                 output_path = f"./data/{data_type}/{task}/test_df_{exp_name}.csv"
