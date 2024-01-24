@@ -26,6 +26,7 @@ import pandas as pd
 
 
 def get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path, sentence_pairs_indices_path, output_path):
+    stormy = True if "stormy_data" in label_pkl else False
     with open(label_pkl, "rb") as fp:
         labels = pickle.load(fp)
     with open(prediction_pkl, "rb") as fp:
@@ -42,12 +43,21 @@ def get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_
     time_b = []
     for sent_i in stratified_sample_indices:
         sent_pair_indices = sentence_pairs_indices[sent_i]
-        sentence_a.append(df.title.values[sent_pair_indices[0]])
-        sentence_b.append(df.title.values[sent_pair_indices[1]])
-        event_a.append(df.wikidata_link.values[sent_pair_indices[0]])
-        event_b.append(df.wikidata_link.values[sent_pair_indices[1]])
-        time_a.append(df.seendate.values[sent_pair_indices[0]])
-        time_b.append(df.seendate.values[sent_pair_indices[1]])
+        if stormy:
+            sentence_a.append(df.title.values[sent_pair_indices[0]])
+            sentence_b.append(df.title.values[sent_pair_indices[1]])
+            event_a.append(df.wikidata_link.values[sent_pair_indices[0]])
+            event_b.append(df.wikidata_link.values[sent_pair_indices[1]])
+            time_a.append(df.seendate.values[sent_pair_indices[0]])
+            time_b.append(df.seendate.values[sent_pair_indices[1]])
+        else:
+            sentence_a.append(df.text.values[sent_pair_indices[0]])
+            sentence_b.append(df.text.values[sent_pair_indices[1]])
+            event_a.append(df.event.values[sent_pair_indices[0]])
+            event_b.append(df.event.values[sent_pair_indices[1]])
+            time_a.append(df.unix_timestamp.values[sent_pair_indices[0]])
+            time_b.append(df.unix_timestamp.values[sent_pair_indices[1]])
+
     df = pd.DataFrame(list(zip(sentence_a, event_a, time_a, labels, predictions, sentence_b, event_b, time_b)),
                       columns =['sentence_a', 'event_a', 'time_a', 'labels', 'predictions', 'sentence_b', 'event_b', 'time_b'])
     df.to_csv(output_path)
@@ -65,7 +75,7 @@ if __name__ == "__main__":
                 prediction_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_prediction.pkl"
                 stratified_sample_indices_path = f"./data/stormy_data/{task}/stratified_sample_indices_test.pkl"
                 sentence_pairs_indices_path = f"./data/stormy_data/{task}/sentence_pairs_indices_test.pkl"
-                df_path = f"./data/{data_type}/crisisfacts_test.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/final_df_v2.csv"
+                df_path = f"./data/{data_type}/crisisfacts_test.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/test_v2.csv"
                 df = pd.read_csv(df_path)
                 output_path = f"./data/{data_type}/{task}/test_df_{exp_name}.csv"
                 test_df = get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path,
