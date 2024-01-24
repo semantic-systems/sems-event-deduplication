@@ -168,7 +168,7 @@ class StormyDataset(torch.utils.data.Dataset):
 
     @staticmethod
     def stratified_sample(list_data, list_labels, ratio=0.01, random_seed=42, save_path=None, forced=True):
-        if not Path(save_path).exists() and forced:
+        if not Path(save_path).exists() or forced:
             # Create a dictionary to store indices for each label
             label_indices = {}
             for i, label in enumerate(list_labels):

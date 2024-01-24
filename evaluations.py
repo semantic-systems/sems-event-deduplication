@@ -1,104 +1,73 @@
+import pickle
+
 import pandas as pd
-import torch
-import numpy as np
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
-from enum import Enum
-from pytorch_lightning import LightningModule, Trainer
 
 
-# Make simple Enum for code clarity
-class DatasetType(Enum):
-    TRAIN = 1
-    TEST = 2
-    VAL = 3
+# class EventDurationPredictionDataset(object):
+#     def __init__(self):
+#         self.df = pd.read_csv("./event_duration_prediction_dataset.csv")
+#         self.train_df = self.df.loc[self.df["event_type"].isin(["Hurricane Florence 2018", "Hurricane Sally 2020"])]
+#         self.valid_df = self.df.loc[self.df["event_type"].isin(["Hurricane Laura 2020", "Saddleridge Wildfire 2019"])]
+#         self.test_df = self.df.loc[self.df["event_type"].isin(["2018 Maryland Flood", "Lilac Wildfire 2017", "Cranston Wildfire 2018", "Holy Wildfire 2018"])]
+#
+#         self.train = self.train_df["text"]
+#         self.val = self.valid_df["text"]
+#         self.test = self.test_df["text"]
+#
+#         self.train_labels = self.train_df["regression_label"]
+#         self.val_labels = self.valid_df["regression_label"]
+#         self.test_labels = self.test_df["regression_label"]
+#
+#     def __len__(self):
+#         return len(self.dataset)
+#
+#     def __getitem__(self, idx):
+#         return self.dataset[idx], self.labels[idx]
 
 
-# Again create a Dataset but this time, do the split in train test val
-class CrisisfactsTestSet(Dataset):
-    event_dict = {"001": "Lilac Wildfire 2017",
-                  "002": "Cranston Wildfire 2018",
-                  "003": "Holy Wildfire 2018",
-                  "004": "Hurricane Florence 2018",
-                  "005": "2018 Maryland Flood",
-                  "006": "Saddleridge Wildfire 2019",
-                  "007": "Hurricane Laura 2020",
-                  "008": "Hurricane Sally 2020"}
-
-    def __init__(self):
-        # load data and shuffle, befor splitting
-        self.df = pd.read_csv("./data/test_from_crisisfacts.csv")
-        self.train_df = self.df.loc[self.df["event_type"].isin(["Hurricane Florence 2018", "Hurricane Sally 2020"])]
-        self.valid_df = self.df.loc[self.df["event_type"].isin(["Hurricane Laura 2020", "Saddleridge Wildfire 2019"])]
-        self.test_df = self.df.loc[self.df["event_type"].isin(["2018 Maryland Flood", "Lilac Wildfire 2017", "Cranston Wildfire 2018", "Holy Wildfire 2018"])]
-
-        self.train = self.train_df["text"]
-        self.val = self.valid_df["text"]
-        self.test = self.test_df["text"]
-
-        self.train_labels = self.train_df["event_type"]
-        self.val_labels = self.valid_df["event_type"]
-        self.test_labels = self.test_df["event_type"]
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        return self.dataset[idx], self.labels[idx]
-
-    def set_fold(self, set_type):
-        # Make sure to call this befor using the dataset
-        if set_type == DatasetType.TRAIN:
-            self.dataset, self.labels = self.train, self.train_labels
-        if set_type == DatasetType.TEST:
-            self.dataset, self.labels = self.test, self.test_labels
-        if set_type == DatasetType.VAL:
-            self.dataset, self.labels = self.val, self.val_labels
-        return self
-
-
-class EventDurationPredictionDataset(Dataset):
-    event_dict = {"001": "Lilac Wildfire 2017",
-                  "002": "Cranston Wildfire 2018",
-                  "003": "Holy Wildfire 2018",
-                  "004": "Hurricane Florence 2018",
-                  "005": "2018 Maryland Flood",
-                  "006": "Saddleridge Wildfire 2019",
-                  "007": "Hurricane Laura 2020",
-                  "008": "Hurricane Sally 2020"}
-
-    def __init__(self):
-        # load data and shuffle, befor splitting
-        self.df = pd.read_csv("./event_duration_prediction_dataset.csv")
-        self.train_df = self.df.loc[self.df["event_type"].isin(["Hurricane Florence 2018", "Hurricane Sally 2020"])]
-        self.valid_df = self.df.loc[self.df["event_type"].isin(["Hurricane Laura 2020", "Saddleridge Wildfire 2019"])]
-        self.test_df = self.df.loc[self.df["event_type"].isin(["2018 Maryland Flood", "Lilac Wildfire 2017", "Cranston Wildfire 2018", "Holy Wildfire 2018"])]
-
-        self.train = self.train_df["text"]
-        self.val = self.valid_df["text"]
-        self.test = self.test_df["text"]
-
-        self.train_labels = self.train_df["regression_label"]
-        self.val_labels = self.valid_df["regression_label"]
-        self.test_labels = self.test_df["regression_label"]
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        return self.dataset[idx], self.labels[idx]
-
-    def set_fold(self, set_type):
-        # Make sure to call this befor using the dataset
-        if set_type == DatasetType.TRAIN:
-            self.dataset, self.labels = self.train, self.train_labels
-        if set_type == DatasetType.TEST:
-            self.dataset, self.labels = self.test, self.test_labels
-        if set_type == DatasetType.VAL:
-            self.dataset, self.labels = self.val, self.val_labels
-        return self
-
+def get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path, sentence_pairs_indices_path, output_path):
+    with open(label_pkl, "rb") as fp:
+        labels = pickle.load(fp)
+    with open(prediction_pkl, "rb") as fp:
+        predictions = pickle.load(fp)
+    with open(stratified_sample_indices_path, "rb") as fp:
+        stratified_sample_indices = pickle.load(fp)
+    with open(sentence_pairs_indices_path, "rb") as fp:
+        sentence_pairs_indices = pickle.load(fp)
+    sentence_a = []
+    sentence_b = []
+    event_a = []
+    event_b = []
+    time_a = []
+    time_b = []
+    for sent_i in stratified_sample_indices:
+        sent_pair_indices = sentence_pairs_indices[sent_i]
+        sentence_a.append(df.title.values[sent_pair_indices[0]])
+        sentence_b.append(df.title.values[sent_pair_indices[1]])
+        event_a.append(df.wikidata_link.values[sent_pair_indices[0]])
+        event_b.append(df.wikidata_link.values[sent_pair_indices[1]])
+        time_a.append(df.seendate.values[sent_pair_indices[0]])
+        time_b.append(df.seendate.values[sent_pair_indices[1]])
+    df = pd.DataFrame(list(zip(sentence_a, event_a, time_a, labels, predictions, sentence_b, event_b, time_b)),
+                      columns =['sentence_a', 'event_a', 'time_a', 'labels', 'predictions', 'sentence_b', 'event_b', 'time_b'])
+    df.to_csv(output_path)
+    return df
 
 
 if __name__ == "__main__":
-    data = EventDurationPredictionDataset().set_fold(1)
+    data_types = ["stormy_data", "crisisfacts_data"]
+    tasks = ["event_deduplication", "event_temporality"]
+    exp_names = ["v5"]
+    for data_type in data_types:
+        for task in tasks:
+            for exp_name in exp_names:
+                label_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_labels.pkl"
+                prediction_pkl = f"./outputs/{exp_name}/{task}/test/test_{exp_name}_{task}_prediction.pkl"
+                stratified_sample_indices_path = f"./data/stormy_data/{task}/stratified_sample_indices_test.pkl"
+                sentence_pairs_indices_path = f"./data/stormy_data/{task}/sentence_pairs_indices_test.pkl"
+                df_path = f"./data/{data_type}/crisisfacts_test.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/final_df_v2.csv"
+                df = pd.read_csv(df_path)
+                output_path = f"./data/{data_type}/{task}/test_df_{exp_name}.csv"
+                test_df = get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path,
+                                                     sentence_pairs_indices_path, output_path)
+                print(f"sentence pair df saved in {output_path}")
