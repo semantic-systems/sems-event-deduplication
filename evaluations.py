@@ -72,8 +72,8 @@ if __name__ == "__main__":
         for task in tasks:
             for exp_name in exp_names:
                 for mode in ["train", "valid", "test"]:
-                    label_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{exp_name}_{task}_labels.pkl"
-                    prediction_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{exp_name}_{task}_prediction.pkl"
+                    label_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{task}_labels.pkl"
+                    prediction_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{task}_prediction.pkl"
                     stratified_sample_indices_path = f"./data/{data_type}/{task}/stratified_sample_indices_{mode}.pkl"
                     sentence_pairs_indices_path = f"./data/{data_type}/{task}/sentence_pairs_indices_{mode}.pkl"
                     df_path = f"./data/{data_type}/crisisfacts_{mode}.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/{mode}_v2.csv"
