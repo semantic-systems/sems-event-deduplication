@@ -26,7 +26,7 @@ import pandas as pd
 
 
 def get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path, sentence_pairs_indices_path, output_path):
-    stormy = True if "stormy_data" in label_pkl else False
+    stormy = True if "stormy_data" in sentence_pairs_indices_path else False
     with open(label_pkl, "rb") as fp:
         labels = pickle.load(fp)
     with open(prediction_pkl, "rb") as fp:
