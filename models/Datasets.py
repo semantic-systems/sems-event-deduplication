@@ -92,7 +92,7 @@ class StormyDataset(torch.utils.data.Dataset):
     def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
             if 0 < subset < 1:
-                df = self.df.sample(weights=self.df.groupby("event_type")['unix_timestamp'].transform('count'),
+                df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'),
                                     n=int(subset * len(self.df)))
             else:
                 df = self.df
