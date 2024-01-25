@@ -168,11 +168,11 @@ class StormyDataset(torch.utils.data.Dataset):
                 return label
 
     def get_descriptions(self):
-        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries.")
+        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.sampled_df)} entries.")
         print(f"     Number of clusters - {len(self.df.wikidata_link.unique())}")
 
     def __getitem__(self, idx):
-        return (self.sampled_df.title.values[idx], self.sampled_df.title.values[idx]), self.labels[idx]
+        return (self.sampled_df.sentence_a.values[idx], self.sampled_df.sentence_b.values[idx]), self.labels[idx]
 
     def __len__(self):
         return len(self.sampled_df)
@@ -216,8 +216,9 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
                 df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'),
                                     n=int(subset * len(self.df)))
             else:
-                df = self.df
                 sentence_pairs_indices = list(product(range(len(df)), repeat=2))
+                logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
+
                 sentence_a = []
                 sentence_b = []
                 event_a = []
@@ -228,14 +229,14 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
                 url_b = []
                 labels = list(map(self.get_label, sentence_pairs_indices))
                 for sent_pair_indices in sentence_pairs_indices:
-                    sentence_a.append(df.text.values[sent_pair_indices[0]])
-                    sentence_b.append(df.text.values[sent_pair_indices[1]])
-                    event_a.append(df.event.values[sent_pair_indices[0]])
-                    event_b.append(df.event.values[sent_pair_indices[1]])
-                    time_a.append(df.unix_timestamp.values[sent_pair_indices[0]])
-                    time_b.append(df.unix_timestamp.values[sent_pair_indices[1]])
-                    url_a.append(df.source.values[sent_pair_indices[0]].split("\'")[3])
-                    url_b.append(df.source.values[sent_pair_indices[1]].split("\'")[3])
+                    sentence_a.append(self.df.text.values[sent_pair_indices[0]])
+                    sentence_b.append(self.df.text.values[sent_pair_indices[1]])
+                    event_a.append(self.df.event.values[sent_pair_indices[0]])
+                    event_b.append(self.df.event.values[sent_pair_indices[1]])
+                    time_a.append(self.df.unix_timestamp.values[sent_pair_indices[0]])
+                    time_b.append(self.df.unix_timestamp.values[sent_pair_indices[1]])
+                    url_a.append(self.df.source.values[sent_pair_indices[0]].split("\'")[3])
+                    url_b.append(self.df.source.values[sent_pair_indices[1]].split("\'")[3])
                 df = pd.DataFrame(
                     list(zip(sentence_a, event_a, time_a, labels, sentence_b, event_b, time_b, url_a, url_b)),
                     columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
@@ -247,7 +248,6 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         else:
             df = pd.read_csv(save_path)
 
-        logger.info(f"Full data size: {len(self.df)}).")
         logger.info(f"Stratified samples length: {len(df)}).")
 
         return df
@@ -294,14 +294,14 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         return timestamp - (timestamp % 86400)
 
     def get_descriptions(self):
-        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries.")
+        print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.sampled_df)} entries.")
         print(f"     Number of clusters - {len(self.df.event.unique())}")
 
     def __getitem__(self, idx):
-        return (self.df.text.values[idx], self.df.text.values[idx]), self.labels[idx]
+        return (self.df.sampled_df.sentence_a.values[idx], self.df.sampled_df.sentence_b.values[idx]), self.labels[idx]
 
     def __len__(self):
-        return len(self.df)
+        return len(self.df.sampled_df)
 
 
 if __name__ == "__main__":
