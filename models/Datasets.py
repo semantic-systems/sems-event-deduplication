@@ -304,6 +304,8 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
+    split_crisisfacts_dataset()
+
     # train_csv_path = Path("./data/stormy_data/train_v1.csv")
     # valid_csv_path = Path("./data/stormy_data/valid_v1.csv")
     test_csv_path = Path("./data/stormy_data/test_v2.csv")
@@ -312,7 +314,6 @@ if __name__ == "__main__":
     test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", data_type="test")
     print(f"test_event_deduplication_storm data \n {test_event_deduplication_storm.get_descriptions()}\n")
 
-    split_crisisfacts_dataset()
     train_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
     valid_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
     test_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
