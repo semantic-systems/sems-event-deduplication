@@ -74,7 +74,7 @@ class StormyDataset(torch.utils.data.Dataset):
             Path(f"./data/stormy_data/{task}").mkdir()
         save_path = str(Path(f"./data/stormy_data/{task}", f"{data_type}.csv").absolute())
         self.sampled_df = self.stratified_sample(save_path=save_path, subset=subset, forced=forced)
-        self.labels = [self.label2int[label] for label in self.sampled_df.labels.values()]
+        self.labels = [self.label2int[label] for label in self.sampled_df.labels.values]
         self.get_descriptions()
 
     @staticmethod
@@ -196,7 +196,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
             Path(f"./data/crisisfacts_data/{task}").mkdir()
         save_path = str(Path(f"./data/crisisfacts_data/{task}", f"{data_type}.csv").absolute())
         self.sampled_df = self.stratified_sample(save_path=save_path, subset=subset, forced=forced)
-        self.labels = [self.label2int[label] for label in self.sampled_df.labels.values()]
+        self.labels = [self.label2int[label] for label in self.sampled_df.labels.values]
         self.get_descriptions()
 
     @staticmethod
