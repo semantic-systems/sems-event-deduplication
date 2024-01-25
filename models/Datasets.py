@@ -97,6 +97,7 @@ class StormyDataset(torch.utils.data.Dataset):
             else:
                 df = self.df
             sentence_pairs_indices = list(product(range(len(df)), repeat=2))
+            logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
             sentence_a = []
             sentence_b = []
             event_a = []
@@ -126,7 +127,6 @@ class StormyDataset(torch.utils.data.Dataset):
         else:
             df = pd.read_csv(save_path)
 
-        logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
         logger.info(f"Stratified samples length: {len(df)}).")
 
         return df
