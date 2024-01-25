@@ -61,7 +61,7 @@ class EventPairwiseTemporalityModel(object):
         return label2int
 
     def prepare_data(self, data_type="train"):
-        if data_type is not "test":
+        if data_type != "test":
             train_csv_path = Path("./data/stormy_data/train_v2.csv")
             valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
             train = StormyDataset(train_csv_path, task=self.task, data_type=data_type)
@@ -92,7 +92,7 @@ class EventPairwiseTemporalityModel(object):
             return test_examples, test_examples_crisisfact, test_examples_storm
 
     def prepare_task_validation_data(self, data_type="train"):
-        if data_type is not "test":
+        if data_type != "test":
             train_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
             valid_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
             train = CrisisFactsDataset(train_csv_path, task=self.task, data_type=data_type)
