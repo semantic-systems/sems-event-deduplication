@@ -216,7 +216,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
                 df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'),
                                     n=int(subset * len(self.df)))
             else:
-                sentence_pairs_indices = list(product(range(len(df)), repeat=2))
+                sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
                 logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
 
                 sentence_a = []
