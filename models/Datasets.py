@@ -70,8 +70,10 @@ class StormyDataset(torch.utils.data.Dataset):
         self.task = task
         self.df = pd.read_csv(csv_path)
         self.label2int = self.get_label2int(task)
-        self.sampled_df = self.stratified_sample(save_path=Path(
-            f"./data/stormy_data/{data_type}/", f"{data_type}.csv"), subset=subset, forced=forced)
+        if not Path(f"./data/stormy_data/{task}").exists():
+            Path(f"./data/stormy_data/{task}").mkdir()
+        save_path = str(Path(f"./data/stormy_data/{task}", f"{data_type}.csv").absolute())
+        self.sampled_df = self.stratified_sample(save_path=save_path, subset=subset, forced=forced)
         self.labels = [self.label2int[label] for label in self.sampled_df.labels.values()]
         self.get_descriptions()
 
@@ -190,8 +192,10 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         self.task = task
         self.df = pd.read_csv(csv_path)
         self.label2int = self.get_label2int(task)
-        self.sampled_df = self.stratified_sample(save_path=Path(
-            f"./data/crisisfacts_data/{data_type}/", f"{data_type}.csv"), subset=subset, forced=forced)
+        if not Path(f"./data/crisisfacts_data/{task}").exists():
+            Path(f"./data/crisisfacts_data/{task}").mkdir()
+        save_path = str(Path(f"./data/crisisfacts_data/{task}", f"{data_type}.csv").absolute())
+        self.sampled_df = self.stratified_sample(save_path=save_path, subset=subset, forced=forced)
         self.labels = [self.label2int[label] for label in self.sampled_df.labels.values()]
         self.get_descriptions()
 
