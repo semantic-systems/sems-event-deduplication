@@ -67,7 +67,7 @@ def get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_
 if __name__ == "__main__":
     data_types = ["stormy_data", "crisisfacts_data"]
     tasks = ["event_deduplication", "event_temporality"]
-    exp_names = ["v5"]
+    exp_names = ["v6"]
     for data_type in data_types:
         for task in tasks:
             for exp_name in exp_names:
