@@ -65,7 +65,7 @@ class EventPairwiseTemporalityModel(object):
             train_csv_path = Path("./data/stormy_data/train_v2.csv")
             valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
             train = StormyDataset(train_csv_path, task=self.task, data_type=data_type, subset=self.subset, forced=True)
-            valid = StormyDataset(valid_csv_path, task=self.task, data_type=data_type, subset=self.subset)
+            valid = StormyDataset(valid_csv_path, task=self.task, data_type=data_type, subset=self.subset, forced=True)
             train_examples = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
                                            label=train.labels[i]) for i in range(len(train))]
             valid_examples = [InputExample(texts=[valid.sampled_df.sentence_a.values[i], valid.sampled_df.sentence_b.values[i]],
