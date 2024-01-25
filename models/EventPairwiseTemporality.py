@@ -66,28 +66,28 @@ class EventPairwiseTemporalityModel(object):
             valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
             train = StormyDataset(train_csv_path, task=self.task, data_type=data_type, subset=self.subset)
             valid = StormyDataset(valid_csv_path, task=self.task, data_type=data_type, subset=self.subset)
-            train_examples = [InputExample(texts=[train.sentence_a[i], train.sentence_b[i]],
-                                           label=train.labels[i]) for i in range(len(train))]
-            valid_examples = [InputExample(texts=[valid.sentence_a[i], valid.sentence_b[i]],
-                                           label=valid.labels[i]) for i in range(len(valid))]
+            train_examples = [InputExample(texts=[train.sampled_df.sentence_a[i], train.sampled_df.sentence_b[i]],
+                                           label=train.sampled_df.labels[i]) for i in range(len(train))]
+            valid_examples = [InputExample(texts=[valid.sampled_df.sentence_a[i], valid.sampled_df.sentence_b[i]],
+                                           label=valid.sampled_df.labels[i]) for i in range(len(valid))]
             return train_examples, valid_examples, None
         else:
             test_csv_path = Path("./data/stormy_data/test_v2.csv")
             test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, subset=self.subset)
-            test_examples = [InputExample(texts=[test.sentence_a[i], test.sentence_b[i]],
-                                           label=test.labels[i]) for i in range(len(test))]
+            test_examples = [InputExample(texts=[test.sampled_df.sentence_a[i], test.sampled_df.sentence_b[i]],
+                                           label=test.sampled_df.labels[i]) for i in range(len(test))]
             logger.info(f"Test (stormy - test): {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
             test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, subset=self.subset)
-            test_examples_crisisfact = [InputExample(texts=[test.sentence_a[i], test.sentence_b[i]],
-                                          label=test.labels[i]) for i in range(len(test))]
+            test_examples_crisisfact = [InputExample(texts=[test.sampled_df.sentence_a[i], test.sampled_df.sentence_b[i]],
+                                          label=test.sampled_df.labels[i]) for i in range(len(test))]
             logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_storm.csv")
             test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, subset=self.subset)
-            test_examples_storm = [InputExample(texts=[test.sentence_a[i], test.sentence_b[i]],
-                                          label=test.labels[i]) for i in range(len(test))]
+            test_examples_storm = [InputExample(texts=[test.sampled_df.sentence_a[i], test.sampled_df.sentence_b[i]],
+                                          label=test.sampled_df.labels[i]) for i in range(len(test))]
             logger.info(f"Test (crisisfacts - storm): {len(test_examples)} pairs of sentences")
             return test_examples, test_examples_crisisfact, test_examples_storm
 
@@ -97,22 +97,22 @@ class EventPairwiseTemporalityModel(object):
             valid_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
             train = CrisisFactsDataset(train_csv_path, task=self.task, data_type=data_type, subset=self.subset)
             valid = CrisisFactsDataset(valid_csv_path, task=self.task, data_type=data_type, subset=self.subset)
-            train_examples_crisisfact = [InputExample(texts=[train.sentence_a[i], train.sentence_b[i]],
-                                                     label=train.labels[i]) for i in range(len(train))]
-            valid_examples_crisisfact = [InputExample(texts=[train.sentence_a[i], train.sentence_b[i]],
-                                                      label=train.labels[i]) for i in range(len(valid))]
+            train_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a[i], train.sampled_df.sentence_b[i]],
+                                                     label=train.sampled_df.labels[i]) for i in range(len(train))]
+            valid_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a[i], train.sampled_df.sentence_b[i]],
+                                                      label=train.sampled_df.labels[i]) for i in range(len(valid))]
             return train_examples_crisisfact, valid_examples_crisisfact, None
         else:
             test_csv_path = Path("./data/stormy_data/test_v2.csv")
             test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, subset=self.subset)
-            test_examples = [InputExample(texts=[test.sentence_a[i], test.sentence_b[i]],
-                                          label=test.labels[i]) for i in range(len(test))]
+            test_examples = [InputExample(texts=[test.sampled_df.sentence_a[i], test.sampled_df.sentence_b[i]],
+                                          label=test.sampled_df.labels[i]) for i in range(len(test))]
             logger.info(f"Test (stormy - test): {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
             test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, subset=self.subset)
-            test_examples_crisisfact = [InputExample(texts=[test.sentence_a[i], test.sentence_b[i]],
-                                                     label=test.labels[i]) for i in range(len(test))]
+            test_examples_crisisfact = [InputExample(texts=[test.sampled_df.sentence_a[i], test.sampled_df.sentence_b[i]],
+                                                     label=test.sampled_df.labels[i]) for i in range(len(test))]
             logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences")
             return test_examples, test_examples_crisisfact, None
 
