@@ -206,16 +206,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=2,
-                                          exp_name="v6",
-                                          transformer_model='distilbert-base-uncased',
-                                          subset=0.1,
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-
-    model.train(task_validation=False)
-    model.test(task_validation=False)
 
     model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=2,
@@ -224,6 +214,16 @@ if __name__ == "__main__":
                                           subset=0.01,
                                           load_pretrained=False,
                                           task="event_deduplication")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+    model = EventPairwiseTemporalityModel(batch_size=256,
+                                          num_epochs=2,
+                                          exp_name="v6",
+                                          transformer_model='distilbert-base-uncased',
+                                          subset=0.01,
+                                          load_pretrained=False,
+                                          task="event_temporality")
     model.train(task_validation=True)
     model.test(task_validation=True)
 
@@ -237,12 +237,13 @@ if __name__ == "__main__":
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    model = EventPairwiseTemporalityModel(batch_size=256,
+    model = EventPairwiseTemporalityModel(batch_size=512,
                                           num_epochs=2,
                                           exp_name="v6",
                                           transformer_model='distilbert-base-uncased',
-                                          subset=0.01,
+                                          subset=0.1,
                                           load_pretrained=False,
-                                          task="event_temporality")
-    model.train(task_validation=True)
-    model.test(task_validation=True)
+                                          task="event_deduplication")
+
+    model.train(task_validation=False)
+    model.test(task_validation=False)

@@ -147,7 +147,7 @@ def stratified_sample(df, strata, size=None, seed=None, keep_index=True):
             first = False
         else:
             tmp_df = df.query(qry).sample(n=n, random_state=seed).reset_index(drop=(not keep_index))
-            stratified_df = stratified_df.append(tmp_df, ignore_index=True)
+            stratified_df = pd.concat([stratified_df, tmp_df], ignore_index=True)
 
     return stratified_df
 
@@ -237,6 +237,7 @@ class StormyDataset(torch.utils.data.Dataset):
         self.data_type = data_type
         self.task = task
         self.df = pd.read_csv(csv_path)
+        logger.info(f"unique sentence in original df: {len(self.df.title.unique())}).")
         self.label2int = self.get_label2int(task)
         if not Path(f"./data/stormy_data/{task}").exists():
             Path(f"./data/stormy_data/{task}").mkdir()
@@ -287,28 +288,28 @@ class StormyDataset(torch.utils.data.Dataset):
                          'url_b'])
             df = df.loc[df["labels"] != "ignored"]
             logger.info(f"samples labels distribution: {df.labels.value_counts()}).")
-            print(f"sentence pair df len: {len(df)})")
-            print(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
-            print(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
-            print(f"unique event_a len: {len(df.event_a.value_counts())})")
-            print(f"unique event_b len: {len(df.event_b.value_counts())})")
-            print(f"unique time_a len: {len(df.time_a.value_counts())})")
-            print(f"unique time_b len: {len(df.time_b.value_counts())})")
-            print(f"unique labels len: {len(df.labels.value_counts())})")
-            print("")
-            df = stratified_sample(df=df,
-                                   strata=['sentence_a', 'event_a', 'labels', 'event_b', 'sentence_b'],
-                                   size=0.6)
-            logger.info(f"stratified samples labels distribution: {df.labels.value_counts()}).")
-            print(f"sentence pair df len: {len(df)})")
-            print(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
-            print(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
-            print(f"unique event_a len: {len(df.event_a.value_counts())})")
-            print(f"unique event_b len: {len(df.event_b.value_counts())})")
-            print(f"unique time_a len: {len(df.time_a.value_counts())})")
-            print(f"unique time_b len: {len(df.time_b.value_counts())})")
-            print(f"unique labels len: {len(df.labels.value_counts())})")
-            print("")
+            logger.info(f"sentence pair df len: {len(df)})")
+            logger.info(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
+            logger.info(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
+            logger.info(f"unique event_a len: {len(df.event_a.value_counts())})")
+            logger.info(f"unique event_b len: {len(df.event_b.value_counts())})")
+            logger.info(f"unique time_a len: {len(df.time_a.value_counts())})")
+            logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
+            logger.info(f"unique labels len: {len(df.labels.value_counts())})")
+            logger.info("")
+            # df = stratified_sample(df=df,
+            #                        strata=['sentence_a', 'event_a', 'labels', 'event_b', 'sentence_b'],
+            #                        size=0.6)
+            # logger.info(f"stratified samples labels distribution: {df.labels.value_counts()}).")
+            # logger.info(f"sentence pair df len: {len(df)})")
+            # logger.info(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
+            # logger.info(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
+            # logger.info(f"unique event_a len: {len(df.event_a.value_counts())})")
+            # logger.info(f"unique event_b len: {len(df.event_b.value_counts())})")
+            # logger.info(f"unique time_a len: {len(df.time_a.value_counts())})")
+            # logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
+            # logger.info(f"unique labels len: {len(df.labels.value_counts())})")
+            # logger.info("")
             df.to_csv(save_path)
         else:
             df = pd.read_csv(save_path)
@@ -378,6 +379,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         self.data_type = data_type
         self.task = task
         self.df = pd.read_csv(csv_path)
+        logger.info(f"unique sentence in original df: {len(self.df.text.unique())}).")
         self.label2int = self.get_label2int(task)
         if not Path(f"./data/crisisfacts_data/{task}").exists():
             Path(f"./data/crisisfacts_data/{task}").mkdir()
@@ -430,28 +432,28 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
                          'url_b'])
             df = df.loc[df["labels"] != "ignored"]
             logger.info(f"samples labels distribution: {df.labels.value_counts()}).")
-            print(f"sentence pair df len: {len(df)})")
-            print(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
-            print(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
-            print(f"unique event_a len: {len(df.event_a.value_counts())})")
-            print(f"unique event_b len: {len(df.event_b.value_counts())})")
-            print(f"unique time_a len: {len(df.time_a.value_counts())})")
-            print(f"unique time_b len: {len(df.time_b.value_counts())})")
-            print(f"unique labels len: {len(df.labels.value_counts())})")
-            print("")
-            df = stratified_sample(df=df,
-                                   strata=['sentence_a', 'event_a', 'labels', 'event_b', 'sentence_b'],
-                                   size=0.6)
-            logger.info(f"stratified samples labels distribution: {df.labels.value_counts()}).")
-            print(f"sentence pair df len: {len(df)})")
-            print(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
-            print(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
-            print(f"unique event_a len: {len(df.event_a.value_counts())})")
-            print(f"unique event_b len: {len(df.event_b.value_counts())})")
-            print(f"unique time_a len: {len(df.time_a.value_counts())})")
-            print(f"unique time_b len: {len(df.time_b.value_counts())})")
-            print(f"unique labels len: {len(df.labels.value_counts())})")
-            print("")
+            logger.info(f"sentence pair df len: {len(df)})")
+            logger.info(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
+            logger.info(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
+            logger.info(f"unique event_a len: {len(df.event_a.value_counts())})")
+            logger.info(f"unique event_b len: {len(df.event_b.value_counts())})")
+            logger.info(f"unique time_a len: {len(df.time_a.value_counts())})")
+            logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
+            logger.info(f"unique labels len: {len(df.labels.value_counts())})")
+            logger.info("")
+            # df = stratified_sample(df=df,
+            #                        strata=['sentence_a', 'event_a', 'labels', 'event_b', 'sentence_b'],
+            #                        size=0.6)
+            # logger.info(f"stratified samples labels distribution: {df.labels.value_counts()}).")
+            # logger.info(f"sentence pair df len: {len(df)})")
+            # logger.info(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
+            # logger.info(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
+            # logger.info(f"unique event_a len: {len(df.event_a.value_counts())})")
+            # logger.info(f"unique event_b len: {len(df.event_b.value_counts())})")
+            # logger.info(f"unique time_a len: {len(df.time_a.value_counts())})")
+            # logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
+            # logger.info(f"unique labels len: {len(df.labels.value_counts())})")
+            # logger.info("")
             df.to_csv(save_path)
         else:
             df = pd.read_csv(save_path)
@@ -516,8 +518,8 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 if __name__ == "__main__":
     split_crisisfacts_dataset()
 
-    train_csv_path = Path("./data/stormy_data/train_v1.csv")
-    valid_csv_path = Path("./data/stormy_data/valid_v1.csv")
+    train_csv_path = Path("./data/stormy_data/train_v2.csv")
+    valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
     test_csv_path = Path("./data/stormy_data/test_v2.csv")
     train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", data_type="train", subset=0.1, forced=True)
     valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", data_type="valid", subset=0.1, forced=True)
