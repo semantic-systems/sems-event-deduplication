@@ -213,38 +213,37 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
     def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
             if 0 < subset < 1:
-                df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'),
+                self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'),
                                     n=int(subset * len(self.df)))
-            else:
-                sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
-                logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
+            sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
+            logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
 
-                sentence_a = []
-                sentence_b = []
-                event_a = []
-                event_b = []
-                time_a = []
-                time_b = []
-                url_a = []
-                url_b = []
-                labels = list(map(self.get_label, sentence_pairs_indices))
-                for sent_pair_indices in sentence_pairs_indices:
-                    sentence_a.append(self.df.text.values[sent_pair_indices[0]])
-                    sentence_b.append(self.df.text.values[sent_pair_indices[1]])
-                    event_a.append(self.df.event.values[sent_pair_indices[0]])
-                    event_b.append(self.df.event.values[sent_pair_indices[1]])
-                    time_a.append(self.df.unix_timestamp.values[sent_pair_indices[0]])
-                    time_b.append(self.df.unix_timestamp.values[sent_pair_indices[1]])
-                    url_a.append(self.df.source.values[sent_pair_indices[0]].split("\'")[3])
-                    url_b.append(self.df.source.values[sent_pair_indices[1]].split("\'")[3])
-                df = pd.DataFrame(
-                    list(zip(sentence_a, event_a, time_a, labels, sentence_b, event_b, time_b, url_a, url_b)),
-                    columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
-                             'url_b'])
-                df = df.loc[df["labels"] != "ignored"]
-                print(df.labels.value_counts())
+            sentence_a = []
+            sentence_b = []
+            event_a = []
+            event_b = []
+            time_a = []
+            time_b = []
+            url_a = []
+            url_b = []
+            labels = list(map(self.get_label, sentence_pairs_indices))
+            for sent_pair_indices in sentence_pairs_indices:
+                sentence_a.append(self.df.text.values[sent_pair_indices[0]])
+                sentence_b.append(self.df.text.values[sent_pair_indices[1]])
+                event_a.append(self.df.event.values[sent_pair_indices[0]])
+                event_b.append(self.df.event.values[sent_pair_indices[1]])
+                time_a.append(self.df.unix_timestamp.values[sent_pair_indices[0]])
+                time_b.append(self.df.unix_timestamp.values[sent_pair_indices[1]])
+                url_a.append(self.df.source.values[sent_pair_indices[0]].split("\'")[3])
+                url_b.append(self.df.source.values[sent_pair_indices[1]].split("\'")[3])
+            df = pd.DataFrame(
+                list(zip(sentence_a, event_a, time_a, labels, sentence_b, event_b, time_b, url_a, url_b)),
+                columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
+                         'url_b'])
+            df = df.loc[df["labels"] != "ignored"]
+            print(df.labels.value_counts())
 
-                df.to_csv(save_path)
+            df.to_csv(save_path)
         else:
             df = pd.read_csv(save_path)
 
