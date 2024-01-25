@@ -92,8 +92,7 @@ class StormyDataset(torch.utils.data.Dataset):
     def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
             if 0 < subset < 1:
-                self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'),
-                                    n=int(subset * len(self.df)))
+                self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'), frac=subset)
             sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
             sentence_a = []
@@ -119,13 +118,13 @@ class StormyDataset(torch.utils.data.Dataset):
                 columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
                          'url_b'])
             df = df.loc[df["labels"] != "ignored"]
-            print(df.labels.value_counts())
 
             df.to_csv(save_path)
         else:
             df = pd.read_csv(save_path)
 
         logger.info(f"Stratified samples length: {len(df)}).")
+        logger.info(f"Stratified samples labels distribution: {df.labels.value_counts()}).")
 
         return df
 
@@ -213,8 +212,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
     def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
             if 0 < subset < 1:
-                self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'),
-                                    n=int(subset * len(self.df)))
+                self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'), frac=subset)
             sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
 
@@ -241,13 +239,12 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
                 columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
                          'url_b'])
             df = df.loc[df["labels"] != "ignored"]
-            print(df.labels.value_counts())
-
             df.to_csv(save_path)
         else:
             df = pd.read_csv(save_path)
 
         logger.info(f"Stratified samples length: {len(df)}).")
+        logger.info(f"Stratified samples labels distribution: {df.labels.value_counts()}).")
 
         return df
 

@@ -210,7 +210,7 @@ if __name__ == "__main__":
                                           num_epochs=2,
                                           exp_name="v6",
                                           transformer_model='distilbert-base-uncased',
-                                          subset=0.5,
+                                          subset=0.01,
                                           load_pretrained=False,
                                           task="event_deduplication")
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
                                           num_epochs=2,
                                           exp_name="v6",
                                           transformer_model='distilbert-base-uncased',
-                                          subset=0.1,
+                                          subset=0.001,
                                           load_pretrained=False,
                                           task="event_deduplication")
     model.train(task_validation=True)
@@ -231,7 +231,7 @@ if __name__ == "__main__":
                                           num_epochs=2,
                                           exp_name="v6",
                                           transformer_model='distilbert-base-uncased',
-                                          subset=0.5,
+                                          subset=0.01,
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=False)
@@ -241,7 +241,7 @@ if __name__ == "__main__":
                                           num_epochs=2,
                                           exp_name="v6",
                                           transformer_model='distilbert-base-uncased',
-                                          subset=0.1,
+                                          subset=0.001,
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=True)
