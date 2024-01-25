@@ -72,13 +72,25 @@ if __name__ == "__main__":
         for task in tasks:
             for exp_name in exp_names:
                 for mode in ["test"]:
-                    label_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{task}_labels.pkl"
-                    prediction_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{task}_prediction.pkl"
-                    stratified_sample_indices_path = f"./data/{data_type}/{task}/stratified_sample_indices_{mode}.pkl"
-                    sentence_pairs_indices_path = f"./data/{data_type}/{task}/sentence_pairs_indices_{mode}.pkl"
-                    df_path = f"./data/{data_type}/crisisfacts_{mode}.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/{mode}_v2.csv"
+                    # label_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{exp_name}_{task}_labels.pkl"
+                    # prediction_pkl = f"./outputs/{exp_name}/{task}/{mode}/{mode}_{exp_name}_{task}_prediction.pkl"
+                    # stratified_sample_indices_path = f"./data/{data_type}/{task}/stratified_sample_indices_{mode}.pkl"
+                    # sentence_pairs_indices_path = f"./data/{data_type}/{task}/sentence_pairs_indices_{mode}.pkl"
+                    # df_path = f"./data/{data_type}/crisisfacts_{mode}.csv" if data_type == "crisisfacts_data" else f"./data/{data_type}/{mode}_v2.csv"
+                    # df = pd.read_csv(df_path)
+                    # output_path = f"./data/{data_type}/{task}/{mode}_df_{exp_name}.csv"
+                    # df = get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path,
+                    #                                      sentence_pairs_indices_path, output_path)
+                    # print(f"sentence pair df (len: {len(df)}) saved in {output_path}")
+                    df_path = f"./data/{data_type}/{task}/{mode}.csv"
                     df = pd.read_csv(df_path)
-                    output_path = f"./data/{data_type}/{task}/{mode}_df_{exp_name}.csv"
-                    df = get_sentence_indices_in_df(df, label_pkl, prediction_pkl, stratified_sample_indices_path,
-                                                         sentence_pairs_indices_path, output_path)
-                    print(f"sentence pair df (len: {len(df)}) saved in {output_path}")
+                    print(f"sentence pair df len: {len(df)})")
+                    print(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
+                    print(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
+                    print(f"unique event_a len: {len(df.event_a.value_counts())})")
+                    print(f"unique event_b len: {len(df.event_b.value_counts())})")
+                    print(f"unique time_a len: {len(df.time_a.value_counts())})")
+                    print(f"unique time_b len: {len(df.time_b.value_counts())})")
+                    print(f"unique labels len: {len(df.labels.value_counts())})")
+                    print("")
+
