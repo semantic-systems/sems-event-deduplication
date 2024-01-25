@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 from pathlib import Path
 from torch.utils.data import Dataset
-from itertools import combinations, chain
+from itertools import product, chain
 import pickle
 import random
 from sklearn.model_selection import train_test_split
@@ -61,32 +61,18 @@ def split_crisisfacts_dataset():
 class StormyDataset(torch.utils.data.Dataset):
     def __init__(self,
                  csv_path,
-                 label_pkl: str,
-                 sentence_pairs_indices_pkl: str,
-                 sample_indices_path: str,
                  subset: float = 1.0,
                  task: str = "combined",
                  data_type: str = "train",
-                 ratio: float = 0.1):
+                 forced: bool = False):
         random.seed(4)
         self.data_type = data_type
         self.task = task
         self.df = pd.read_csv(csv_path)
         self.label2int = self.get_label2int(task)
-        self.sentence_pairs_indices_pkl = sentence_pairs_indices_pkl
-        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl)
-        self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
-                                                                   sentence_pairs_indices=self.sentence_pairs_indices,
-                                                                   sample_indices_path=sample_indices_path)
-        stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
-        stratified_sample_indices_path = stratified_sample_indices_path.replace("json", "pkl")
-        self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels,
-                                                                          save_path=stratified_sample_indices_path,
-                                                                          ratio=ratio)
-        self.labels = [self.label2int[label] for label in self.labels]
-
-        self.end_index = round(subset * len(self.sentence_pairs_indices))
-        self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
+        self.sampled_df = self.stratified_sample(save_path=Path(
+            f"./data/stormy_data/{data_type}/", f"{data_type}.csv"), subset=subset, forced=forced)
+        self.labels = [self.label2int[label] for label in self.sampled_df.labels.values()]
         self.get_descriptions()
 
     @staticmethod
@@ -101,110 +87,50 @@ class StormyDataset(torch.utils.data.Dataset):
             ValueError(f"{task} not defined! Please choose from 'combined', 'event_deduplication' or 'event_temporality'")
         return label2int
 
-    def get_sentence_pairs_indices(self, sentence_pairs_indices_pkl: str):
-        if sentence_pairs_indices_pkl and Path(sentence_pairs_indices_pkl).exists():
-            logger.info(f"Found sentence pair indices under {sentence_pairs_indices_pkl}. Loading ({self.task}/{self.data_type}) ...")
-
-            with open(sentence_pairs_indices_pkl, "rb") as fp:
-                sentence_pairs_indices = pickle.load(fp)
-            return sentence_pairs_indices
-        else:
-            logger.info(f"Sentence pair indices file ({sentence_pairs_indices_pkl}) not found. Creating sentence pair indices ({self.task}/{self.data_type})...")
-            sentence_pairs_indices = list(combinations(range(len(self.df)), 2))
-            return sentence_pairs_indices
-
-    def get_labels(self, label_pkl: str, sentence_pairs_indices: list, sample_indices_path: str):
-        if Path(label_pkl).exists():
-            logger.info(f"Found labels under {label_pkl}. Loading ({self.task}/{self.data_type}) ...")
-            with open(label_pkl, "rb") as fp:
-                labels = pickle.load(fp)
-            assert len(labels) == len(self.sentence_pairs_indices)
-        else:
-            logger.info(f"Label file ({label_pkl}) not found. Creating labels ({self.task}/{self.data_type})...")
-            labels = list(map(self.get_label, self.sentence_pairs_indices))
-            if "ignored" in labels:
-                valid_label_indices = [i for i, label in enumerate(labels) if label != "ignored"]
-                labels = [labels[i] for i in valid_label_indices]
-                sentence_pairs_indices = [sentence_pairs_indices[i] for i in valid_label_indices]
-            sample_indices = self.get_sample_indices(labels, sample_indices_path)
-            labels, sentence_pairs_indices = self.get_balanced_sentence_pairs_and_labels(sample_indices, labels, sentence_pairs_indices)
-            logger.info(f"Balanced sentence pairs indices created. Storing locally ({self.sentence_pairs_indices_pkl}).")
-            with open(self.sentence_pairs_indices_pkl, 'wb') as file:
-                pickle.dump(sentence_pairs_indices, file)
-            logger.info(f"Balanced labels created. Storing locally ({label_pkl}).")
-            with open(label_pkl, 'wb') as file:
-                pickle.dump(labels, file)
-        return labels, sentence_pairs_indices
-
-    @staticmethod
-    def get_sample_indices(labels, save_path):
-        if not Path(save_path).exists():
-            logger.info(f"Sample indices ({save_path}) not found. Creating sample indices to balance dataset...")
-            c = Counter(labels)
-            sample_probabilities = {key: min(c.values())/value for key, value in c.items()}
-            logger.info(f"Sample probabilities: {sample_probabilities}")
-            sample_indices_dict = {key: [] for key, value in c.items()}
-            for i, label in enumerate(labels):
-                sample = np.random.choice(np.arange(0, 2), p=[1-sample_probabilities[label], sample_probabilities[label]])
-                index_selected = sample > 0.5
-                if index_selected:
-                    sample_indices_dict[label].append(i)
-            logger.info(f"Sample indices created and stored.")
-            with open(save_path, 'w') as fp:
-                json.dump(sample_indices_dict, fp)
-
-            return sample_indices_dict
-        else:
-            logger.info(f"Sample indices ({save_path}) found. Loading...")
-            with open(save_path, 'r') as f:
-                sample_indices = json.load(f)
-            return sample_indices
-
-    @staticmethod
-    def get_balanced_sentence_pairs_and_labels(sample_indices, labels, sentence_pairs_indices):
-        logger.info(f"Creating balanced dataset...")
-        sample_indices = list(chain(*list(sample_indices.values())))
-        return [labels[i] for i in sample_indices], [sentence_pairs_indices[i] for i in sample_indices]
-
-    @staticmethod
-    def stratified_sample(list_data, list_labels, ratio=0.01, random_seed=42, save_path=None, forced=True):
+    def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
-            # Create a dictionary to store indices for each label
-            label_indices = {}
-            for i, label in enumerate(list_labels):
-                if label not in label_indices:
-                    label_indices[label] = []
-                label_indices[label].append(i)
+            if 0 < subset < 1:
+                df = self.df.sample(weights=self.df.groupby("event_type")['unix_timestamp'].transform('count'),
+                                    n=int(subset * len(self.df)))
+            else:
+                df = self.df
+            sentence_pairs_indices = list(product(range(len(df)), repeat=2))
+            sentence_a = []
+            sentence_b = []
+            event_a = []
+            event_b = []
+            time_a = []
+            time_b = []
+            url_a = []
+            url_b = []
+            labels = list(map(self.get_label, sentence_pairs_indices))
+            for sent_pair_indices in sentence_pairs_indices:
+                sentence_a.append(df.title.values[sent_pair_indices[0]])
+                sentence_b.append(df.title.values[sent_pair_indices[1]])
+                event_a.append(df.wikidata_link.values[sent_pair_indices[0]])
+                event_b.append(df.wikidata_link.values[sent_pair_indices[1]])
+                time_a.append(df.seendate.values[sent_pair_indices[0]])
+                time_b.append(df.seendate.values[sent_pair_indices[1]])
+                url_a.append(df.url.values[sent_pair_indices[0]])
+                url_b.append(df.url.values[sent_pair_indices[1]])
+            df = pd.DataFrame(
+                list(zip(sentence_a, event_a, time_a, labels, sentence_b, event_b, time_b, url_a, url_b)),
+                columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
+                         'url_b'])
+            df = df.loc[df["labels"] != "ignored"]
+            print(df.labels.value_counts())
 
-            # Determine the number of samples to draw for each label
-            num_samples_per_label = {label: int(len(indices) * ratio) for label, indices in label_indices.items()}
-
-            # Set random seed for reproducibility
-            random.seed(random_seed)
-
-            # Sample from each label category while maintaining balance
-            sampled_indices = []
-            for label, num_samples in num_samples_per_label.items():
-                sampled_indices.extend(random.sample(label_indices[label], num_samples))
-
-            # Sort the sampled indices for consistent order
-            sampled_indices.sort()
-
-            with open(save_path, 'wb') as file:
-                pickle.dump(sampled_indices, file)
+            df.to_csv(save_path)
         else:
-            with open(save_path, 'rb') as file:
-                sampled_indices = pickle.load(file)
-        # Create sampled lists based on the sampled indices
-        sampled_data = [list_data[i] for i in sampled_indices]
-        sampled_labels = [list_labels[i] for i in sampled_indices]
-        logger.info(f"Stratified sentence pairs length: {len(sampled_data)}).")
-        logger.info(f"Stratified labels length: {len(sampled_labels)}).")
+            df = pd.read_csv(save_path)
 
-        return sampled_data, sampled_labels
+        logger.info(f"Full data size: {len(self.df)}).")
+        logger.info(f"Stratified samples length: {len(df)}).")
+
+        return df
 
     def get_label(self, index_tuple):
-        clusters = self.df.new_cluster.values
+        clusters = self.df.wikidata_link.values
         cluster_i = clusters[index_tuple[0]]
         cluster_j = clusters[index_tuple[1]]
         if self.task == "combined":
@@ -243,47 +169,86 @@ class StormyDataset(torch.utils.data.Dataset):
 
     def get_descriptions(self):
         print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries.")
-        print(f"     Number of clusters - {len(self.df.new_cluster.unique())}")
-        print(f"     Number of combinations over sentence pairs - {len(self.sentence_pairs_indices)}")
+        print(f"     Number of clusters - {len(self.df.wikidata_link.unique())}")
 
     def __getitem__(self, idx):
-        i, j = self.sentence_pairs_indices[idx]
-        return (self.df.title.values[i], self.df.title.values[j]), self.labels[idx]
+        return (self.df.title.values[idx], self.df.title.values[idx]), self.labels[idx]
 
     def __len__(self):
-        return len(self.sentence_pairs_indices)
+        return len(self.df)
 
 
-class CrisisFactsDataset(StormyDataset):
+class CrisisFactsDataset(torch.utils.data.Dataset):
     def __init__(self,
                  csv_path,
-                 label_pkl: str,
-                 sentence_pairs_indices_pkl: str,
-                 sample_indices_path: str,
                  subset: float = 1.0,
                  task: str = "combined",
                  data_type: str = "train",
-                 ratio: float = 0.01):
-        super().__init__(csv_path, label_pkl, sentence_pairs_indices_pkl, sample_indices_path, subset, task, data_type)
+                 forced: bool = False):
         random.seed(4)
+        self.data_type = data_type
+        self.task = task
         self.df = pd.read_csv(csv_path)
-        self.df.rename({'text': 'title'}, axis=1, inplace=True)
         self.label2int = self.get_label2int(task)
-        self.sentence_pairs_indices_pkl = sentence_pairs_indices_pkl
-        self.sentence_pairs_indices = self.get_sentence_pairs_indices(sentence_pairs_indices_pkl)
-        self.labels, self.sentence_pairs_indices = self.get_labels(label_pkl,
-                                                                   sentence_pairs_indices=self.sentence_pairs_indices,
-                                                                   sample_indices_path=sample_indices_path)
-        stratified_sample_indices_path = sample_indices_path.replace("sample_indices", "stratified_sample_indices")
-        stratified_sample_indices_path = stratified_sample_indices_path.replace("json", "pkl")
-        self.sentence_pairs_indices, self.labels = self.stratified_sample(self.sentence_pairs_indices, self.labels,
-                                                                          save_path=stratified_sample_indices_path,
-                                                                          ratio=ratio)
-        self.labels = [self.label2int[label] for label in self.labels]
-
-        self.end_index = round(subset * len(self.sentence_pairs_indices))
-        self.sentence_pairs_indices = self.sentence_pairs_indices[:self.end_index]
+        self.sampled_df = self.stratified_sample(save_path=Path(
+            f"./data/crisisfacts_data/{data_type}/", f"{data_type}.csv"), subset=subset, forced=forced)
+        self.labels = [self.label2int[label] for label in self.sampled_df.labels.values()]
         self.get_descriptions()
+
+    @staticmethod
+    def get_label2int(task):
+        if task == "combined":
+            label2int = {"different_event": 0, "earlier": 1, "same_date": 2, "later": 3}
+        elif task == "event_deduplication":
+            label2int = {"different_event": 0, "same_event": 1}
+        elif task == "event_temporality":
+            label2int = {"earlier": 0, "same_date": 1, "later": 2}
+        else:
+            ValueError(
+                f"{task} not defined! Please choose from 'combined', 'event_deduplication' or 'event_temporality'")
+        return label2int
+
+    def stratified_sample(self, save_path=None, subset=0.1, forced=True):
+        if not Path(save_path).exists() or forced:
+            if 0 < subset < 1:
+                df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'),
+                                    n=int(subset * len(self.df)))
+            else:
+                df = self.df
+                sentence_pairs_indices = list(product(range(len(df)), repeat=2))
+                sentence_a = []
+                sentence_b = []
+                event_a = []
+                event_b = []
+                time_a = []
+                time_b = []
+                url_a = []
+                url_b = []
+                labels = list(map(self.get_label, sentence_pairs_indices))
+                for sent_pair_indices in sentence_pairs_indices:
+                    sentence_a.append(df.text.values[sent_pair_indices[0]])
+                    sentence_b.append(df.text.values[sent_pair_indices[1]])
+                    event_a.append(df.event.values[sent_pair_indices[0]])
+                    event_b.append(df.event.values[sent_pair_indices[1]])
+                    time_a.append(df.unix_timestamp.values[sent_pair_indices[0]])
+                    time_b.append(df.unix_timestamp.values[sent_pair_indices[1]])
+                    url_a.append(df.source.values[sent_pair_indices[0]].split("\'")[3])
+                    url_b.append(df.source.values[sent_pair_indices[1]].split("\'")[3])
+                df = pd.DataFrame(
+                    list(zip(sentence_a, event_a, time_a, labels, sentence_b, event_b, time_b, url_a, url_b)),
+                    columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
+                             'url_b'])
+                df = df.loc[df["labels"] != "ignored"]
+                print(df.labels.value_counts())
+
+                df.to_csv(save_path)
+        else:
+            df = pd.read_csv(save_path)
+
+        logger.info(f"Full data size: {len(self.df)}).")
+        logger.info(f"Stratified samples length: {len(df)}).")
+
+        return df
 
     def get_label(self, index_tuple):
         clusters = self.df.event.values
@@ -329,27 +294,32 @@ class CrisisFactsDataset(StormyDataset):
     def get_descriptions(self):
         print(f"The dataset{({self.task}-{self.data_type})} csv has {len(self.df)} entries.")
         print(f"     Number of clusters - {len(self.df.event.unique())}")
-        print(f"     Number of combinations over sentence pairs - {len(self.sentence_pairs_indices)}")
 
     def __getitem__(self, idx):
-        i, j = self.sentence_pairs_indices[idx]
-        return (self.df.title.values[i], self.df.title.values[j]), self.labels[idx]
+        return (self.df.text.values[idx], self.df.text.values[idx]), self.labels[idx]
 
     def __len__(self):
-        return len(self.sentence_pairs_indices)
+        return len(self.df)
 
 
 if __name__ == "__main__":
-    train_csv_path = Path("./data/stormy_data/train_v1.csv")
-    valid_csv_path = Path("./data/stormy_data/valid_v1.csv")
+    # train_csv_path = Path("./data/stormy_data/train_v1.csv")
+    # valid_csv_path = Path("./data/stormy_data/valid_v1.csv")
     test_csv_path = Path("./data/stormy_data/test_v1.csv")
-    test_crisisfacts_csv_path = Path("./data/crisisfacts_data/test_from_crisisfacts.csv")
-    # train = StormyDataset(train_csv_path, label_pkl=Path("../data/stormy_data/labels_train.pkl"))
-    # valid = StormyDataset(valid_csv_path, label_pkl=Path("../data/stormy_data/labels_valid.pkl"))
-    # test = StormyDataset(test_csv_path, label_pkl=Path("../data/stormy_data/labels_test.pkl"))
-    test_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, label_pkl=None)
-    # print(f"Training data \n {train.get_descriptions()}\n")
-    # print(f"Validation data \n {valid.get_descriptions()}\n")
-    # print(f"Testing data \n {test.get_descriptions()}\n")
-    print(f"Testing data \n {test_crisisfacts.get_descriptions()}\n")
+    # train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", data_type="train")
+    # valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", data_type="valid")
+    test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", data_type="test")
+    print(f"test_event_deduplication_storm data \n {test_event_deduplication_storm.get_descriptions()}\n")
+
+    split_crisisfacts_dataset()
+    train_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
+    valid_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
+    test_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
+    test_crisisfacts_storm_csv_path = Path("./data/crisisfacts_data/crisisfacts_storm_test.csv")
+    train_event_temporality_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_temporality", data_type="train")
+    valid_event_temporality_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_temporality", data_type="valid")
+    test_event_temporality_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_temporality", data_type="test")
+    test_event_temporality_crisisfacts_storm = CrisisFactsDataset(test_crisisfacts_storm_csv_path, task="event_temporality", data_type="test")
+
+    print(f"test_event_temporality_crisisfacts_storm data \n {test_event_temporality_crisisfacts_storm.get_descriptions()}\n")
     split_crisisfacts_dataset()
