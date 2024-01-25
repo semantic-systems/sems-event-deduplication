@@ -297,10 +297,10 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         print(f"     Number of clusters - {len(self.df.event.unique())}")
 
     def __getitem__(self, idx):
-        return (self.df.sampled_df.sentence_a.values[idx], self.df.sampled_df.sentence_b.values[idx]), self.labels[idx]
+        return (self.sampled_df.sentence_a.values[idx], self.sampled_df.sentence_b.values[idx]), self.labels[idx]
 
     def __len__(self):
-        return len(self.df.sampled_df)
+        return len(self.sampled_df)
 
 
 if __name__ == "__main__":
