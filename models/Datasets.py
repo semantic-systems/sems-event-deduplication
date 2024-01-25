@@ -126,7 +126,7 @@ class StormyDataset(torch.utils.data.Dataset):
         else:
             df = pd.read_csv(save_path)
 
-        logger.info(f"Full data size: {len(self.df)}).")
+        logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
         logger.info(f"Stratified samples length: {len(df)}).")
 
         return df
