@@ -92,11 +92,9 @@ class StormyDataset(torch.utils.data.Dataset):
     def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
             if 0 < subset < 1:
-                df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'),
+                self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'),
                                     n=int(subset * len(self.df)))
-            else:
-                df = self.df
-            sentence_pairs_indices = list(product(range(len(df)), repeat=2))
+            sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
             sentence_a = []
             sentence_b = []
@@ -108,14 +106,14 @@ class StormyDataset(torch.utils.data.Dataset):
             url_b = []
             labels = list(map(self.get_label, sentence_pairs_indices))
             for sent_pair_indices in sentence_pairs_indices:
-                sentence_a.append(df.title.values[sent_pair_indices[0]])
-                sentence_b.append(df.title.values[sent_pair_indices[1]])
-                event_a.append(df.wikidata_link.values[sent_pair_indices[0]])
-                event_b.append(df.wikidata_link.values[sent_pair_indices[1]])
-                time_a.append(df.seendate.values[sent_pair_indices[0]])
-                time_b.append(df.seendate.values[sent_pair_indices[1]])
-                url_a.append(df.url.values[sent_pair_indices[0]])
-                url_b.append(df.url.values[sent_pair_indices[1]])
+                sentence_a.append(self.df.title.values[sent_pair_indices[0]])
+                sentence_b.append(self.df.title.values[sent_pair_indices[1]])
+                event_a.append(self.df.wikidata_link.values[sent_pair_indices[0]])
+                event_b.append(self.df.wikidata_link.values[sent_pair_indices[1]])
+                time_a.append(self.df.seendate.values[sent_pair_indices[0]])
+                time_b.append(self.df.seendate.values[sent_pair_indices[1]])
+                url_a.append(self.df.url.values[sent_pair_indices[0]])
+                url_b.append(self.df.url.values[sent_pair_indices[1]])
             df = pd.DataFrame(
                 list(zip(sentence_a, event_a, time_a, labels, sentence_b, event_b, time_b, url_a, url_b)),
                 columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
@@ -174,10 +172,10 @@ class StormyDataset(torch.utils.data.Dataset):
         print(f"     Number of clusters - {len(self.df.wikidata_link.unique())}")
 
     def __getitem__(self, idx):
-        return (self.df.title.values[idx], self.df.title.values[idx]), self.labels[idx]
+        return (self.sampled_df.title.values[idx], self.sampled_df.title.values[idx]), self.labels[idx]
 
     def __len__(self):
-        return len(self.df)
+        return len(self.sampled_df)
 
 
 class CrisisFactsDataset(torch.utils.data.Dataset):
