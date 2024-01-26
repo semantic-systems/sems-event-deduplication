@@ -208,8 +208,8 @@ class EventPairwiseTemporalityModel(object):
 if __name__ == "__main__":
 
     model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=2,
-                                          exp_name="v6",
+                                          num_epochs=10,
+                                          exp_name="v8",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.05,
                                           load_pretrained=False,
@@ -218,8 +218,8 @@ if __name__ == "__main__":
     model.test(task_validation=True)
 
     model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=2,
-                                          exp_name="v6",
+                                          num_epochs=10,
+                                          exp_name="v8",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.05,
                                           load_pretrained=False,
@@ -228,8 +228,8 @@ if __name__ == "__main__":
     model.test(task_validation=True)
 
     model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=2,
-                                          exp_name="v6",
+                                          num_epochs=10,
+                                          exp_name="v8",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.1,
                                           load_pretrained=False,
@@ -238,8 +238,8 @@ if __name__ == "__main__":
     model.test(task_validation=False)
 
     model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=2,
-                                          exp_name="v6",
+                                          num_epochs=10,
+                                          exp_name="v8",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.1,
                                           load_pretrained=False,

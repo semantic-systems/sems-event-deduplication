@@ -243,7 +243,7 @@ class StormyDataset(torch.utils.data.Dataset):
         if not Path(save_path).exists() or forced:
             # if 0 < subset < 1:
             #     self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'), frac=subset)
-            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.title.unique()), len(self.df.title.unique())*5)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.title.unique()), len(self.df.title.unique())*10)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
             sentence_a = []
             sentence_b = []
@@ -387,7 +387,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         if not Path(save_path).exists() or forced:
             # if 0 < subset < 1:
             #     self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'), frac=subset)
-            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.text.unique()), len(self.df.text.unique())*5)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.text.unique()), len(self.df.text.unique())*10)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
 
             sentence_a = []
