@@ -216,6 +216,7 @@ class StormyDataset(torch.utils.data.Dataset):
         self.data_type = data_type
         self.task = task
         self.df = pd.read_csv(csv_path)
+        logger.info(f"Stormy dataset: {task} - {data_type}).")
         logger.info(f"Unique sentence in original df: {len(self.df.title.unique())}).")
         self.label2int = self.get_label2int(task)
         if not Path(f"./data/stormy_data/{task}").exists():
@@ -243,7 +244,7 @@ class StormyDataset(torch.utils.data.Dataset):
         if not Path(save_path).exists() or forced:
             # if 0 < subset < 1:
             #     self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'), frac=subset)
-            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.title.unique()), len(self.df.title.unique())*10)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.title.unique()), len(self.df.title.unique())*30)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
             sentence_a = []
             sentence_b = []
@@ -360,6 +361,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         self.data_type = data_type
         self.task = task
         self.df = pd.read_csv(csv_path)
+        logger.info(f"Crisisfacts dataset: {task} - {data_type}).")
         logger.info(f"Unique sentence in original df: {len(self.df.text.unique())}).")
         self.label2int = self.get_label2int(task)
         if not Path(f"./data/crisisfacts_data/{task}").exists():
@@ -387,7 +389,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         if not Path(save_path).exists() or forced:
             # if 0 < subset < 1:
             #     self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'), frac=subset)
-            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.text.unique()), len(self.df.text.unique())*10)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.text.unique()), len(self.df.text.unique())*30)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
 
             sentence_a = []
