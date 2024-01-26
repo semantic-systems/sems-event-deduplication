@@ -152,40 +152,19 @@ def stratified_sample(df, strata, size=None, seed=None, keep_index=True):
     return stratified_df
 
 
-def stratified_sample_report(df, strata, size=None):
-    '''
-    Generates a dataframe reporting the counts in each stratum and the counts
-    for the final sampled dataframe.
-    Parameters
-    ----------
-    :df: pandas dataframe from which data will be sampled.
-    :strata: list containing columns that will be used in the stratified sampling.
-    :size: sampling size. If not informed, a sampling size will be calculated
-        using Cochran adjusted sampling formula:
-        cochran_n = (Z**2 * p * q) /e**2
-        where:
-            - Z is the z-value. In this case we use 1.96 representing 95%
-            - p is the estimated proportion of the population which has an
-                attribute. In this case we use 0.5
-            - q is 1-p
-            - e is the margin of error
-        This formula is adjusted as follows:
-        adjusted_cochran = cochran_n / 1+((cochran_n -1)/N)
-        where:
-            - cochran_n = result of the previous formula
-            - N is the population size
-    Returns
-    -------
-    A dataframe reporting the counts in each stratum and the counts
-    for the final sampled dataframe.
-    '''
-    population = len(df)
-    size = __smpl_size(population, size)
-    tmp = df[strata]
-    tmp['size'] = 1
-    tmp_grpd = tmp.groupby(strata).count().reset_index()
-    tmp_grpd['samp_size'] = round(size / population * tmp_grpd['size']).astype(int)
-    return tmp_grpd
+def generate_diversified_random_pairs(length, num_samples):
+    X = range(length)
+    K = num_samples
+    pairs = []
+    M = length
+    if M % 2 == 1:
+      M -= 1
+    while len(pairs) < K:
+      B = random.sample(X,M)
+      A = zip(B[0:int(M/2)],B[int(M/2):M])
+      pairs.extend(A)
+    pairs = pairs[0:K]
+    return pairs
 
 
 def __smpl_size(population, size):
@@ -260,9 +239,9 @@ class StormyDataset(torch.utils.data.Dataset):
 
     def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
-            if 0 < subset < 1:
-                self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'), frac=subset)
-            sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
+            # if 0 < subset < 1:
+            #     self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'), frac=subset)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.title.unique()), len(self.df.title.unique())*5)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
             sentence_a = []
             sentence_b = []
@@ -403,9 +382,9 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 
     def stratified_sample(self, save_path=None, subset=0.1, forced=True):
         if not Path(save_path).exists() or forced:
-            if 0 < subset < 1:
-                self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'), frac=subset)
-            sentence_pairs_indices = list(product(range(len(self.df)), repeat=2))
+            # if 0 < subset < 1:
+            #     self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'), frac=subset)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.text.unique()), len(self.df.text.unique())*5)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
 
             sentence_a = []
