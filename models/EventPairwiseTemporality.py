@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
     model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=10,
-                                          exp_name="v8",
+                                          exp_name="v1",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.05,
                                           load_pretrained=False,
@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
     model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=10,
-                                          exp_name="v8",
+                                          exp_name="v1",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.05,
                                           load_pretrained=False,
@@ -229,7 +229,7 @@ if __name__ == "__main__":
 
     model = EventPairwiseTemporalityModel(batch_size=512,
                                           num_epochs=10,
-                                          exp_name="v8",
+                                          exp_name="v1",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.1,
                                           load_pretrained=False,
@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
     model = EventPairwiseTemporalityModel(batch_size=512,
                                           num_epochs=10,
-                                          exp_name="v8",
+                                          exp_name="v1",
                                           transformer_model='distilbert-base-uncased',
                                           subset=0.1,
                                           load_pretrained=False,
