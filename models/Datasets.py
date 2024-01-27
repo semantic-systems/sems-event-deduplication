@@ -208,13 +208,14 @@ def __smpl_size(population, size):
 class StormyDataset(torch.utils.data.Dataset):
     def __init__(self,
                  csv_path,
-                 subset: float = 1.0,
+                 multiplier: int,
                  task: str = "combined",
                  data_type: str = "train",
                  forced: bool = True):
         random.seed(4)
         self.data_type = data_type
         self.task = task
+        self.multiplier = multiplier
         self.df = pd.read_csv(csv_path)
         logger.info(f"Stormy dataset: {task} - {data_type}).")
         logger.info(f"Unique sentence in original df: {len(self.df.title.unique())}).")
@@ -222,7 +223,7 @@ class StormyDataset(torch.utils.data.Dataset):
         if not Path(f"./data/stormy_data/{task}").exists():
             Path(f"./data/stormy_data/{task}").mkdir()
         save_path = str(Path(f"./data/stormy_data/{task}", f"{data_type}.csv").absolute())
-        self.sampled_df = self.stratified_sample(save_path=save_path, subset=subset, forced=forced)
+        self.sampled_df = self.stratified_sample(save_path=save_path, forced=forced)
         logger.info(f"Unique sentence in sampled df: {len(self.sampled_df.sentence_a.unique())}).")
 
         self.labels = [self.label2int[label] for label in self.sampled_df.labels.values]
@@ -240,11 +241,9 @@ class StormyDataset(torch.utils.data.Dataset):
             ValueError(f"{task} not defined! Please choose from 'combined', 'event_deduplication' or 'event_temporality'")
         return label2int
 
-    def stratified_sample(self, save_path=None, subset=0.1, forced=True):
+    def stratified_sample(self, save_path=None, forced=True):
         if not Path(save_path).exists() or forced:
-            # if 0 < subset < 1:
-            #     self.df = self.df.sample(weights=self.df.groupby("wikidata_link")['seendate'].transform('count'), frac=subset)
-            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.title.unique()), len(self.df.title.unique())*30)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.title.unique()), len(self.df.title.unique())*self.multiplier)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
             sentence_a = []
             sentence_b = []
@@ -279,19 +278,6 @@ class StormyDataset(torch.utils.data.Dataset):
             logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
             logger.info(f"unique labels len: {len(df.labels.value_counts())})")
             logger.info("")
-            # df = stratified_sample(df=df,
-            #                        strata=['sentence_a', 'event_a', 'labels', 'event_b', 'sentence_b'],
-            #                        size=0.6)
-            # logger.info(f"stratified samples labels distribution: {df.labels.value_counts()}).")
-            # logger.info(f"sentence pair df len: {len(df)})")
-            # logger.info(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
-            # logger.info(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
-            # logger.info(f"unique event_a len: {len(df.event_a.value_counts())})")
-            # logger.info(f"unique event_b len: {len(df.event_b.value_counts())})")
-            # logger.info(f"unique time_a len: {len(df.time_a.value_counts())})")
-            # logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
-            # logger.info(f"unique labels len: {len(df.labels.value_counts())})")
-            # logger.info("")
             df.to_csv(save_path)
         else:
             df = pd.read_csv(save_path)
@@ -353,13 +339,14 @@ class StormyDataset(torch.utils.data.Dataset):
 class CrisisFactsDataset(torch.utils.data.Dataset):
     def __init__(self,
                  csv_path,
-                 subset: float = 1.0,
+                 multiplier: int,
                  task: str = "combined",
                  data_type: str = "train",
                  forced: bool = True):
         random.seed(4)
         self.data_type = data_type
         self.task = task
+        self.multiplier = multiplier
         self.df = pd.read_csv(csv_path)
         logger.info(f"Crisisfacts dataset: {task} - {data_type}).")
         logger.info(f"Unique sentence in original df: {len(self.df.text.unique())}).")
@@ -367,7 +354,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
         if not Path(f"./data/crisisfacts_data/{task}").exists():
             Path(f"./data/crisisfacts_data/{task}").mkdir()
         save_path = str(Path(f"./data/crisisfacts_data/{task}", f"{data_type}.csv").absolute())
-        self.sampled_df = self.stratified_sample(save_path=save_path, subset=subset, forced=forced)
+        self.sampled_df = self.stratified_sample(save_path=save_path, forced=forced)
         logger.info(f"Unique sentence in sampled df: {len(self.sampled_df.sentence_a.unique())}).")
         self.labels = [self.label2int[label] for label in self.sampled_df.labels.values]
         self.get_descriptions()
@@ -385,11 +372,9 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
                 f"{task} not defined! Please choose from 'combined', 'event_deduplication' or 'event_temporality'")
         return label2int
 
-    def stratified_sample(self, save_path=None, subset=0.1, forced=True):
+    def stratified_sample(self, save_path=None, forced=True):
         if not Path(save_path).exists() or forced:
-            # if 0 < subset < 1:
-            #     self.df = self.df.sample(weights=self.df.groupby("event")['unix_timestamp'].transform('count'), frac=subset)
-            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.text.unique()), len(self.df.text.unique())*30)
+            sentence_pairs_indices = generate_diversified_random_pairs(len(self.df.text.unique()), len(self.df.text.unique())*self.multiplier)
             logger.info(f"Full data size: {len(sentence_pairs_indices)}).")
 
             sentence_a = []
@@ -425,19 +410,6 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
             logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
             logger.info(f"unique labels len: {len(df.labels.value_counts())})")
             logger.info("")
-            # df = stratified_sample(df=df,
-            #                        strata=['sentence_a', 'event_a', 'labels', 'event_b', 'sentence_b'],
-            #                        size=0.6)
-            # logger.info(f"stratified samples labels distribution: {df.labels.value_counts()}).")
-            # logger.info(f"sentence pair df len: {len(df)})")
-            # logger.info(f"unique sentence_a len: {len(df.sentence_a.value_counts())})")
-            # logger.info(f"unique sentence_b len: {len(df.sentence_b.value_counts())})")
-            # logger.info(f"unique event_a len: {len(df.event_a.value_counts())})")
-            # logger.info(f"unique event_b len: {len(df.event_b.value_counts())})")
-            # logger.info(f"unique time_a len: {len(df.time_a.value_counts())})")
-            # logger.info(f"unique time_b len: {len(df.time_b.value_counts())})")
-            # logger.info(f"unique labels len: {len(df.labels.value_counts())})")
-            # logger.info("")
             df.to_csv(save_path)
         else:
             df = pd.read_csv(save_path)
@@ -505,25 +477,24 @@ if __name__ == "__main__":
     train_csv_path = Path("./data/stormy_data/train_v2.csv")
     valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
     test_csv_path = Path("./data/stormy_data/test_v2.csv")
-    train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", data_type="train", subset=0.1, forced=True)
-    valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", data_type="valid", subset=0.1, forced=True)
-    test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", data_type="test", subset=0.1, forced=True)
+    train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", multiplier=50, data_type="train", forced=True)
+    valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", multiplier=50, data_type="valid", forced=True)
+    test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", data_type="test", forced=True)
 
     train_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
     valid_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
     test_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
     test_crisisfacts_storm_csv_path = Path("./data/crisisfacts_data/crisisfacts_storm_test.csv")
     train_event_deduplication_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_deduplication",
-                                                             data_type="train", subset=0.01, forced=True)
+                                                               multiplier=50, data_type="train", forced=True)
     valid_event_deduplication_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_deduplication",
-                                                             data_type="valid", subset=0.01, forced=True)
+                                                               multiplier=50, data_type="valid", forced=True)
     test_event_deduplication_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_deduplication",
-                                                            data_type="test", subset=0.01, forced=True)
-    test_event_deduplication_crisisfacts_storm = CrisisFactsDataset(test_crisisfacts_storm_csv_path,
-                                                                  task="event_deduplication", data_type="test",
-                                                                  subset=0.01, forced=True)
+                                                              multiplier=50, data_type="test", forced=True)
+    test_event_deduplication_crisisfacts_storm = CrisisFactsDataset(test_crisisfacts_storm_csv_path, multiplier=50,
+                                                            task="event_deduplication", data_type="test", forced=True)
 
-    train_event_temporality_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_temporality", data_type="train", subset=0.01, forced=True)
-    valid_event_temporality_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_temporality", data_type="valid", subset=0.01, forced=True)
-    test_event_temporality_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_temporality", data_type="test", subset=0.01, forced=True)
-    test_event_temporality_crisisfacts_storm = CrisisFactsDataset(test_crisisfacts_storm_csv_path, task="event_temporality", data_type="test", subset=0.01, forced=True)
+    train_event_temporality_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_temporality", multiplier=50, data_type="train", forced=True)
+    valid_event_temporality_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_temporality", multiplier=50, data_type="valid", forced=True)
+    test_event_temporality_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_temporality", multiplier=50, data_type="test", forced=True)
+    test_event_temporality_crisisfacts_storm = CrisisFactsDataset(test_crisisfacts_storm_csv_path, task="event_temporality", multiplier=50, data_type="test", forced=True)
