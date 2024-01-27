@@ -8,6 +8,7 @@ from sentence_transformers import SentencesDataset, losses, models, InputExample
 from torch.utils.data import DataLoader
 from Datasets import StormyDataset, CrisisFactsDataset
 from EventPairwiseTemporalityEvaluator import EventPairwiseTemporalityEvaluator
+from torch.optim import AdamW
 
 logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger(__name__)
@@ -142,12 +143,12 @@ class EventPairwiseTemporalityModel(object):
         self.model.fit(train_objectives=[(training_dataloader, self.train_loss)],
                        evaluator=validation_evaluator,
                        epochs=self.num_epochs,
-                       evaluation_steps=5000,
+                       evaluation_steps=10000,
                        warmup_steps=warmup_steps,
                        output_path=str(Path("./outputs", self.exp_name, self.task)),
                        show_progress_bar=True,
-                       save_best_model=True
-                  )
+                       save_best_model=True,
+                       optimizer_params={'lr': 1e-05})
 
     def test(self, task_validation: False):
         logger.info(f"Testing on stormy test set...")
