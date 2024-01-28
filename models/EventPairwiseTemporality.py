@@ -159,7 +159,7 @@ class EventPairwiseTemporalityModel(object):
         testing_dataset = SentencesDataset(testing_data, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
-                                                              name=f'test_{self.exp_name}_{self.task}',
+                                                              name=f'test_{self.exp_name}_{self.task}_gdelt',
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
@@ -168,7 +168,7 @@ class EventPairwiseTemporalityModel(object):
         testing_dataset = SentencesDataset(testing_data_crisisfacts_test, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
-                                                              name=f'test_{self.exp_name}_{self.task}',
+                                                              name=f'test_{self.exp_name}_{self.task}_crisisfacts',
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
@@ -178,7 +178,7 @@ class EventPairwiseTemporalityModel(object):
             testing_dataset = SentencesDataset(test_examples_crisisfact_test_storm, self.model)
             testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
             testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
-                                                                  name=f'test_{self.exp_name}_{self.task}_storm',
+                                                                  name=f'test_{self.exp_name}_{self.task}_crisisfacts_storm',
                                                                   softmax_model=self.train_loss)
 
             testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=5,
                                           exp_name="v2",
-                                          transformer_model='distilbert-base-uncased',
+                                          transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
     model.train(task_validation=True)
@@ -221,8 +221,8 @@ if __name__ == "__main__":
 
     model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=5,
-                                          exp_name="v2",
-                                          transformer_model='distilbert-base-uncased',
+                                          exp_name="v3",
+                                          transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=True)
@@ -231,19 +231,19 @@ if __name__ == "__main__":
     logger.info("\n\nEvent temperal deduplication crisisfacts combined\n\n")
     model = EventPairwiseTemporalityModel(batch_size=256,
                                           num_epochs=5,
-                                          exp_name="v2",
-                                          transformer_model='distilbert-base-uncased',
+                                          exp_name="v3",
+                                          transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="combined")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
+    model.train(task_validation=True)
+    model.test(task_validation=True)
 
     logger.info("\n\nEvent deduplication storm\n\n")
 
     model = EventPairwiseTemporalityModel(batch_size=512,
                                           num_epochs=10,
-                                          exp_name="v2",
-                                          transformer_model='distilbert-base-uncased',
+                                          exp_name="v3",
+                                          transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
 
@@ -254,8 +254,8 @@ if __name__ == "__main__":
 
     model = EventPairwiseTemporalityModel(batch_size=512,
                                           num_epochs=10,
-                                          exp_name="v2",
-                                          transformer_model='distilbert-base-uncased',
+                                          exp_name="v3",
+                                          transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=False)
@@ -264,8 +264,8 @@ if __name__ == "__main__":
     logger.info("\n\nEvent temperal deduplication storm combined\n\n")
     model = EventPairwiseTemporalityModel(batch_size=512,
                                           num_epochs=10,
-                                          exp_name="v2",
-                                          transformer_model='distilbert-base-uncased',
+                                          exp_name="v3",
+                                          transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="combined")
     model.train(task_validation=False)
