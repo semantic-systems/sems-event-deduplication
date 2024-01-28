@@ -208,8 +208,8 @@ class EventPairwiseTemporalityModel(object):
 
 if __name__ == "__main__":
     logger.info("\n\nEvent deduplication crisisfacts\n\n")
-    model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=5,
+    model = EventPairwiseTemporalityModel(batch_size=128,
+                                          num_epochs=2,
                                           exp_name="v3",
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
@@ -219,8 +219,8 @@ if __name__ == "__main__":
 
     logger.info("\n\nEvent temperal order prediction crisisfacts\n\n")
 
-    model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=5,
+    model = EventPairwiseTemporalityModel(batch_size=128,
+                                          num_epochs=2,
                                           exp_name="v3",
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
@@ -228,20 +228,20 @@ if __name__ == "__main__":
     model.train(task_validation=True)
     model.test(task_validation=True)
 
-    logger.info("\n\nEvent temperal deduplication crisisfacts combined\n\n")
-    model = EventPairwiseTemporalityModel(batch_size=256,
-                                          num_epochs=5,
-                                          exp_name="v3",
-                                          transformer_model='roberta-base',
-                                          load_pretrained=False,
-                                          task="combined")
-    model.train(task_validation=True)
-    model.test(task_validation=True)
+    # logger.info("\n\nEvent temperal deduplication crisisfacts combined\n\n")
+    # model = EventPairwiseTemporalityModel(batch_size=256,
+    #                                       num_epochs=5,
+    #                                       exp_name="v3",
+    #                                       transformer_model='roberta-base',
+    #                                       load_pretrained=False,
+    #                                       task="combined")
+    # model.train(task_validation=True)
+    # model.test(task_validation=True)
 
     logger.info("\n\nEvent deduplication storm\n\n")
 
-    model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=10,
+    model = EventPairwiseTemporalityModel(batch_size=128,
+                                          num_epochs=2,
                                           exp_name="v3",
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
@@ -252,8 +252,8 @@ if __name__ == "__main__":
 
     logger.info("\n\nEvent temperal order prediction storm\n\n")
 
-    model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=10,
+    model = EventPairwiseTemporalityModel(batch_size=128,
+                                          num_epochs=2,
                                           exp_name="v3",
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
@@ -261,13 +261,13 @@ if __name__ == "__main__":
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    logger.info("\n\nEvent temperal deduplication storm combined\n\n")
-    model = EventPairwiseTemporalityModel(batch_size=512,
-                                          num_epochs=10,
-                                          exp_name="v3",
-                                          transformer_model='roberta-base',
-                                          load_pretrained=False,
-                                          task="combined")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
+    # logger.info("\n\nEvent temperal deduplication storm combined\n\n")
+    # model = EventPairwiseTemporalityModel(batch_size=512,
+    #                                       num_epochs=10,
+    #                                       exp_name="v3",
+    #                                       transformer_model='roberta-base',
+    #                                       load_pretrained=False,
+    #                                       task="combined")
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
 
