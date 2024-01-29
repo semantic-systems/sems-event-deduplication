@@ -17,6 +17,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 class EventPairwiseTemporalityModel(object):
     def __init__(self,
+                 multipliers: list,
                  batch_size: int = 512,
                  num_epochs: int = 10,
                  exp_name: str = "v1",
@@ -28,6 +29,7 @@ class EventPairwiseTemporalityModel(object):
         self.num_epochs = num_epochs
         self.task = task
         self.subset = subset
+        self.multipliers = multipliers
         self.prepare_environment(exp_name, task)
         self.batch_size = batch_size
         self.label2int = self.get_label2int(task)
@@ -65,64 +67,64 @@ class EventPairwiseTemporalityModel(object):
         if data_type != "test":
             train_csv_path = Path("./data/stormy_data/train_v2.csv")
             valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
-            train = StormyDataset(train_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=50)
-            valid = StormyDataset(valid_csv_path, task=self.task, data_type="valid", forced=False, multiplier=30)
+            train = StormyDataset(train_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[0]) #50
+            valid = StormyDataset(valid_csv_path, task=self.task, data_type="valid", forced=False, multiplier=self.multipliers[1]) #30
             train_examples = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
                                            label=train.labels[i]) for i in range(len(train))]
             valid_examples = [InputExample(texts=[valid.sampled_df.sentence_a.values[i], valid.sampled_df.sentence_b.values[i]],
                                            label=valid.labels[i]) for i in range(len(valid))]
-            return train_examples, valid_examples, None
+            logger.info(f"Test (Disc - train): {len(train_examples)} pairs of sentences")
+            logger.info(f"Test (Disc - valid): {len(valid_examples)} pairs of sentences\n\n")
+            return train_examples, valid_examples
         else:
             test_csv_path = Path("./data/stormy_data/test_v2.csv")
-            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=30)
+            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[2]) #30
             test_examples = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                            label=test.labels[i]) for i in range(len(test))]
-            logger.info(f"Test (stormy - test): {len(test_examples)} pairs of sentences")
+            logger.info(f"Test (Disc - test): {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
-            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=30)
+            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[3])  #30
             test_examples_crisisfact = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                           label=test.labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences")
+            logger.info(f"Test (Crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences")
 
-            test_csv_path = Path("./data/crisisfacts_data/crisisfacts_storm.csv")
-            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=30)
-            test_examples_storm = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
-                                          label=test.labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts - storm): {len(test_examples)} pairs of sentences")
-            return test_examples, test_examples_crisisfact, test_examples_storm
+            return test_examples, test_examples_crisisfact
 
     def prepare_task_validation_data(self, data_type="train"):
         if data_type != "test":
             train_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
             valid_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
-            train = CrisisFactsDataset(train_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=50)
-            valid = CrisisFactsDataset(valid_csv_path, task=self.task, data_type="valid", forced=False, multiplier=30)
+            train = CrisisFactsDataset(train_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[0]) #50
+            valid = CrisisFactsDataset(valid_csv_path, task=self.task, data_type="valid", forced=False, multiplier=self.multipliers[1]) #30
             train_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
                                                      label=train.labels[i]) for i in range(len(train))]
             valid_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
                                                       label=train.labels[i]) for i in range(len(valid))]
-            return train_examples_crisisfact, valid_examples_crisisfact, None
+            logger.info(f"Test (Crisisfacts - train): {len(train_examples_crisisfact)} pairs of sentences")
+            logger.info(f"Test (Crisisfacts - valid): {len(valid_examples_crisisfact)} pairs of sentences\n\n")
+
+            return train_examples_crisisfact, valid_examples_crisisfact
         else:
             test_csv_path = Path("./data/stormy_data/test_v2.csv")
-            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=30)
+            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[2]) #30
             test_examples = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                           label=test.labels[i]) for i in range(len(test))]
-            logger.info(f"Test (stormy - test): {len(test_examples)} pairs of sentences")
+            logger.info(f"Test (Disc - test): {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
-            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=30)
+            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[3]) #30
             test_examples_crisisfact = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                                      label=test.labels[i]) for i in range(len(test))]
-            logger.info(f"Test (crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences")
-            return test_examples, test_examples_crisisfact, None
+            logger.info(f"Test (Crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences\n\n")
+            return test_examples, test_examples_crisisfact
 
     def train(self, task_validation: False):
         logger.info(f"Preparing training and validation dataset.")
         if task_validation:
-            training_data, validation_data, _ = self.prepare_task_validation_data(data_type="train")
+            training_data, validation_data = self.prepare_task_validation_data(data_type="train")
         else:
-            training_data, validation_data, _ = self.prepare_data(data_type="train")
+            training_data, validation_data = self.prepare_data(data_type="train")
 
         training_dataset = SentencesDataset(training_data, self.model)
         validation_dataset = SentencesDataset(validation_data, self.model)
@@ -148,14 +150,14 @@ class EventPairwiseTemporalityModel(object):
                        output_path=str(Path("./outputs", self.exp_name, self.task)),
                        show_progress_bar=True,
                        save_best_model=True,
-                       optimizer_params={'lr': 1e-05})
+                       optimizer_params={'lr': 2e-05})
 
     def test(self, task_validation: False):
-        logger.info(f"Testing on stormy test set...")
+        logger.info(f"Testing on Disc test set...")
         if task_validation:
-            testing_data, testing_data_crisisfacts_test, test_examples_crisisfact_test_storm = self.prepare_task_validation_data(data_type="test")
+            testing_data, testing_data_crisisfacts_test = self.prepare_task_validation_data(data_type="test")
         else:
-            testing_data, testing_data_crisisfacts_test, test_examples_crisisfact_test_storm = self.prepare_data(data_type="test")
+            testing_data, testing_data_crisisfacts_test = self.prepare_data(data_type="test")
         testing_dataset = SentencesDataset(testing_data, self.model)
         testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
         testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
@@ -173,15 +175,6 @@ class EventPairwiseTemporalityModel(object):
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
 
-        if test_examples_crisisfact_test_storm is not None:
-            logger.info(f"Testing on Crisisfacts storm set...")
-            testing_dataset = SentencesDataset(test_examples_crisisfact_test_storm, self.model)
-            testing_dataloader = DataLoader(testing_dataset, shuffle=False, batch_size=self.batch_size)
-            testing_evaluator = EventPairwiseTemporalityEvaluator(testing_dataloader,
-                                                                  name=f'test_{self.exp_name}_{self.task}_crisisfacts_storm',
-                                                                  softmax_model=self.train_loss)
-
-            testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
 
     @staticmethod
     def prepare_environment(exp_name, task):
@@ -207,67 +200,48 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    logger.info("\n\nEvent deduplication crisisfacts\n\n")
-    model = EventPairwiseTemporalityModel(batch_size=128,
+    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts\n\n")
+    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30],
+                                          batch_size=128,
                                           num_epochs=2,
-                                          exp_name="v3",
-                                          transformer_model='roberta-base',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-    model.train(task_validation=True)
-    model.test(task_validation=True)
-
-    logger.info("\n\nEvent temperal order prediction crisisfacts\n\n")
-
-    model = EventPairwiseTemporalityModel(batch_size=128,
-                                          num_epochs=2,
-                                          exp_name="v3",
+                                          exp_name="v4",
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=True)
     model.test(task_validation=True)
 
-    # logger.info("\n\nEvent temperal deduplication crisisfacts combined\n\n")
-    # model = EventPairwiseTemporalityModel(batch_size=256,
-    #                                       num_epochs=5,
-    #                                       exp_name="v3",
-    #                                       transformer_model='roberta-base',
-    #                                       load_pretrained=False,
-    #                                       task="combined")
-    # model.train(task_validation=True)
-    # model.test(task_validation=True)
-
-    logger.info("\n\nEvent deduplication storm\n\n")
-
-    model = EventPairwiseTemporalityModel(batch_size=128,
+    logger.info("\n\nEvent Narrated Time Prediction Disc\n\n")
+    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 16],
+                                          batch_size=128,
                                           num_epochs=2,
-                                          exp_name="v3",
-                                          transformer_model='roberta-base',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
-    logger.info("\n\nEvent temperal order prediction storm\n\n")
-
-    model = EventPairwiseTemporalityModel(batch_size=128,
-                                          num_epochs=2,
-                                          exp_name="v3",
+                                          exp_name="v4",
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    # logger.info("\n\nEvent temperal deduplication storm combined\n\n")
-    # model = EventPairwiseTemporalityModel(batch_size=512,
-    #                                       num_epochs=10,
-    #                                       exp_name="v3",
-    #                                       transformer_model='roberta-base',
-    #                                       load_pretrained=False,
-    #                                       task="combined")
-    # model.train(task_validation=False)
-    # model.test(task_validation=False)
+    logger.info("\n\nEvent Deduplication Crisisfacts\n\n")
+    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 16],
+                                          batch_size=128,
+                                          num_epochs=2,
+                                          exp_name="v4",
+                                          transformer_model='roberta-base',
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
 
+
+    logger.info("\n\nEvent Deduplication Disc\n\n")
+    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30],
+                                          batch_size=128,
+                                          num_epochs=2,
+                                          exp_name="v4",
+                                          transformer_model='roberta-base',
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+
+    model.train(task_validation=False)
+    model.test(task_validation=False)
