@@ -202,7 +202,7 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts\n\n")
+    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts")
     model = EventPairwiseTemporalityModel(multipliers=[33, 10, 16],
                                           forced=True,
                                           batch_size=128,
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     model.train(task_validation=True)
     model.test(task_validation=True)
 
-    logger.info("\n\nEvent Narrated Time Prediction Disc\n\n")
+    logger.info("\n\nEvent Narrated Time Prediction Disc")
     model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30],
                                           forced=True,
                                           batch_size=128,
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    logger.info("\n\nEvent Deduplication Crisisfacts\n\n")
+    logger.info("\n\nEvent Deduplication Crisisfacts")
     model = EventPairwiseTemporalityModel(multipliers=[20, 10, 16],
                                           forced=True,
                                           batch_size=128,
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     model.test(task_validation=True)
 
 
-    logger.info("\n\nEvent Deduplication Disc\n\n")
+    logger.info("\n\nEvent Deduplication Disc")
     model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30],
                                           forced=True,
                                           batch_size=128,
