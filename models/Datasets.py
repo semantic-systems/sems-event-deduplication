@@ -72,10 +72,8 @@ def generate_diversified_random_pairs(df, multiplier, get_label):
         A_label_ignored_indics = [i for i, label in enumerate(A_label) if label == "ignored"]
         non_ignored_pairs = {i: a for i, a in enumerate(A) if i not in A_label_ignored_indics}
         sample_indics = list(non_ignored_pairs.keys())
-        for i in sample_indics:
-            if A[i] not in pairs:
-                pairs.append(A[i])
-                labels.append(non_ignored_pairs[i])
+        pairs = [A[i] for i in sample_indics]
+        labels = [non_ignored_pairs[i] for i in sample_indics]
     return pairs, labels
 
 
