@@ -8,7 +8,7 @@ from sentence_transformers import SentencesDataset, losses, models, InputExample
 from torch.utils.data import DataLoader
 from Datasets import StormyDataset, CrisisFactsDataset
 from EventPairwiseTemporalityEvaluator import EventPairwiseTemporalityEvaluator
-from models.Datasets import split_crisisfacts_dataset
+from Datasets import split_crisisfacts_dataset
 
 
 logging.basicConfig(level=logging.NOTSET)
@@ -211,20 +211,20 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    split_crisisfacts_dataset()
-
-    logger.info("\n\nEvent Deduplication Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
-                                          forced=True,
-                                          batch_size=512,
-                                          num_epochs=10,
-                                          exp_name="v5",
-                                          transformer_model='distilbert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-
-    model.train(task_validation=False)
-    model.test(task_validation=False)
+    ## split_crisisfacts_dataset()
+    # 
+    # logger.info("\n\nEvent Deduplication Disc\n")
+    # model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
+    #                                       forced=True,
+    #                                       batch_size=512,
+    #                                       num_epochs=10,
+    #                                       exp_name="v5",
+    #                                       transformer_model='distilbert-base-cased',
+    #                                       load_pretrained=False,
+    #                                       task="event_deduplication")
+    #
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
 
     logger.info("\n\nEvent Deduplication Crisisfacts (Pretrained on DISC)\n")
     model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
@@ -234,7 +234,7 @@ if __name__ == "__main__":
                                           exp_name="pretrained_on_disc",
                                           transformer_model='distilbert-base-cased',
                                           load_pretrained=True,
-                                          pretrained_model_path="./outputs/v5/event_deduplication/",
+                                          pretrained_model_path="./outputs/v5/event_deduplication/disc/",
                                           task="event_deduplication")
     model.train(task_validation=True)
     model.test(task_validation=True)
