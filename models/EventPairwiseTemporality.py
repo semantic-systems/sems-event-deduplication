@@ -227,7 +227,7 @@ if __name__ == "__main__":
     model.test(task_validation=False)
 
     logger.info("\n\nEvent Deduplication Crisisfacts\n\n")
-    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 16],
+    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 16],
                                           forced=True,
                                           batch_size=128,
                                           num_epochs=2,
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 
 
     logger.info("\n\nEvent Deduplication Disc\n\n")
-    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30],
+    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30],
                                           forced=True,
                                           batch_size=128,
                                           num_epochs=2,
