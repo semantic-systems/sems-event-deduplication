@@ -8,7 +8,8 @@ from sentence_transformers import SentencesDataset, losses, models, InputExample
 from torch.utils.data import DataLoader
 from Datasets import StormyDataset, CrisisFactsDataset
 from EventPairwiseTemporalityEvaluator import EventPairwiseTemporalityEvaluator
-from torch.optim import AdamW
+from models.Datasets import split_crisisfacts_dataset
+
 
 logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ class EventPairwiseTemporalityModel(object):
                  transformer_model: str = 'distilbert-base-uncased',
                  subset: float = 1.0,
                  load_pretrained: bool = False,
+                 pretrained_model_path: str = "./outputs/v5/event_deduplication/",
                  task: str = "combined",
                  forced: bool = False):
         self.forced = forced
@@ -43,7 +45,10 @@ class EventPairwiseTemporalityModel(object):
         if not load_pretrained:
             self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model], device=self.device)
         else:
-            if Path("./outputs", exp_name, task, "pytorch_model.bin").exists():
+            if Path(pretrained_model_path).exists():
+                self.model = SentenceTransformer(str(Path(pretrained_model_path).absolute()), device=self.device)
+
+            elif Path("./outputs", exp_name, task, "pytorch_model.bin").exists():
                 self.model = SentenceTransformer(str(Path("./outputs", exp_name, task).absolute()), device=self.device)
             else:
                 self.model = SentenceTransformer(modules=[word_embedding_model, pooling_model, dense_model],
@@ -142,14 +147,14 @@ class EventPairwiseTemporalityModel(object):
         logger.info(f"Output path: {str(Path('./outputs', self.exp_name, self.task))}")
 
         validation_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "validation")))
-
+        output_path = str(Path("./outputs", self.exp_name, self.task, "crisisfacts").absolute()) if task_validation else str(Path("./outputs", self.exp_name, self.task, "disc").absolute())
         # Train the model
         self.model.fit(train_objectives=[(training_dataloader, self.train_loss)],
                        evaluator=validation_evaluator,
                        epochs=self.num_epochs,
                        evaluation_steps=10000,
                        warmup_steps=warmup_steps,
-                       output_path=str(Path("./outputs", self.exp_name, self.task)),
+                       output_path=output_path,
                        show_progress_bar=True,
                        save_best_model=True,
                        optimizer_params={'lr': 2e-05})
@@ -192,6 +197,10 @@ class EventPairwiseTemporalityModel(object):
             Path("./outputs", exp_name, task, "validation").mkdir()
         if not Path("./outputs", exp_name, task, "test").exists():
             Path("./outputs", exp_name, task, "test").mkdir()
+        if not Path("./outputs", exp_name, task, "disc").exists():
+            Path("./outputs", exp_name, task, "disc").mkdir()
+        if not Path("./outputs", exp_name, task, "crisisfacts").exists():
+            Path("./outputs", exp_name, task, "crisisfacts").mkdir()
 
     @property
     def device(self):
@@ -202,9 +211,65 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts\n")
+    split_crisisfacts_dataset()
+
+    logger.info("\n\nEvent Deduplication Disc\n")
+    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
+                                          forced=True,
+                                          batch_size=512,
+                                          num_epochs=10,
+                                          exp_name="v5",
+                                          transformer_model='distilbert-base-cased',
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+
+    model.train(task_validation=False)
+    model.test(task_validation=False)
+
+    logger.info("\n\nEvent Deduplication Crisisfacts (Pretrained on DISC)\n")
+    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
+                                          forced=True,
+                                          batch_size=256,
+                                          num_epochs=2,
+                                          exp_name="pretrained_on_disc",
+                                          transformer_model='distilbert-base-cased',
+                                          load_pretrained=True,
+                                          pretrained_model_path="./outputs/v5/event_deduplication/",
+                                          task="event_deduplication")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+
+    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts (Pretrained on DISC)\n")
     model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
                                           forced=True,
+                                          batch_size=256,
+                                          num_epochs=5,
+                                          exp_name="pretrained_on_disc",
+                                          transformer_model='distilbert-base-cased',
+                                          load_pretrained=True,
+                                          pretrained_model_path="./outputs/v5/event_deduplication/",
+                                          task="event_temporality")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+
+    logger.info("\n\nEvent Deduplication Crisisfacts\n")
+    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
+                                          forced=False,
+                                          batch_size=256,
+                                          num_epochs=2,
+                                          exp_name="v5",
+                                          transformer_model='distilbert-base-cased',
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+
+    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts\n")
+    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
+                                          forced=False,
                                           batch_size=256,
                                           num_epochs=5,
                                           exp_name="v5",
@@ -226,28 +291,6 @@ if __name__ == "__main__":
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    logger.info("\n\nEvent Deduplication Crisisfacts\n")
-    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
-                                          forced=True,
-                                          batch_size=256,
-                                          num_epochs=2,
-                                          exp_name="v5",
-                                          transformer_model='distilbert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-    model.train(task_validation=True)
-    model.test(task_validation=True)
 
 
-    logger.info("\n\nEvent Deduplication Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
-                                          forced=True,
-                                          batch_size=512,
-                                          num_epochs=10,
-                                          exp_name="v5",
-                                          transformer_model='distilbert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
 
-    model.train(task_validation=False)
-    model.test(task_validation=False)
