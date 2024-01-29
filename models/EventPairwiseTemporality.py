@@ -24,7 +24,9 @@ class EventPairwiseTemporalityModel(object):
                  transformer_model: str = 'distilbert-base-uncased',
                  subset: float = 1.0,
                  load_pretrained: bool = False,
-                 task: str = "combined"):
+                 task: str = "combined",
+                 forced: bool = False):
+        self.forced = forced
         self.exp_name = exp_name
         self.num_epochs = num_epochs
         self.task = task
@@ -67,8 +69,8 @@ class EventPairwiseTemporalityModel(object):
         if data_type != "test":
             train_csv_path = Path("./data/stormy_data/train_v2.csv")
             valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
-            train = StormyDataset(train_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[0]) #50
-            valid = StormyDataset(valid_csv_path, task=self.task, data_type="valid", forced=False, multiplier=self.multipliers[1]) #30
+            train = StormyDataset(train_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[0]) #50
+            valid = StormyDataset(valid_csv_path, task=self.task, data_type="valid", forced=self.forced, multiplier=self.multipliers[1]) #30
             train_examples = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
                                            label=train.labels[i]) for i in range(len(train))]
             valid_examples = [InputExample(texts=[valid.sampled_df.sentence_a.values[i], valid.sampled_df.sentence_b.values[i]],
@@ -78,13 +80,13 @@ class EventPairwiseTemporalityModel(object):
             return train_examples, valid_examples
         else:
             test_csv_path = Path("./data/stormy_data/test_v2.csv")
-            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[2]) #30
+            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[2]) #30
             test_examples = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                            label=test.labels[i]) for i in range(len(test))]
             logger.info(f"Test (Disc - test): {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
-            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[3])  #30
+            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[3])  #30
             test_examples_crisisfact = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                           label=test.labels[i]) for i in range(len(test))]
             logger.info(f"Test (Crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences")
@@ -95,8 +97,8 @@ class EventPairwiseTemporalityModel(object):
         if data_type != "test":
             train_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
             valid_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
-            train = CrisisFactsDataset(train_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[0]) #50
-            valid = CrisisFactsDataset(valid_csv_path, task=self.task, data_type="valid", forced=False, multiplier=self.multipliers[1]) #30
+            train = CrisisFactsDataset(train_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[0]) #50
+            valid = CrisisFactsDataset(valid_csv_path, task=self.task, data_type="valid", forced=self.forced, multiplier=self.multipliers[1]) #30
             train_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
                                                      label=train.labels[i]) for i in range(len(train))]
             valid_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
@@ -107,13 +109,13 @@ class EventPairwiseTemporalityModel(object):
             return train_examples_crisisfact, valid_examples_crisisfact
         else:
             test_csv_path = Path("./data/stormy_data/test_v2.csv")
-            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[2]) #30
+            test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[2]) #30
             test_examples = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                           label=test.labels[i]) for i in range(len(test))]
             logger.info(f"Test (Disc - test): {len(test_examples)} pairs of sentences")
 
             test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
-            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=False, multiplier=self.multipliers[3]) #30
+            test = CrisisFactsDataset(test_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[3]) #30
             test_examples_crisisfact = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                                      label=test.labels[i]) for i in range(len(test))]
             logger.info(f"Test (Crisisfacts - test): {len(test_examples_crisisfact)} pairs of sentences\n\n")
@@ -202,6 +204,7 @@ class EventPairwiseTemporalityModel(object):
 if __name__ == "__main__":
     logger.info("\n\nEvent Narrated Time Prediction Crisisfacts\n\n")
     model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30],
+                                          forced=True,
                                           batch_size=128,
                                           num_epochs=2,
                                           exp_name="v4",
@@ -213,6 +216,7 @@ if __name__ == "__main__":
 
     logger.info("\n\nEvent Narrated Time Prediction Disc\n\n")
     model = EventPairwiseTemporalityModel(multipliers=[33, 10, 16],
+                                          forced=True,
                                           batch_size=128,
                                           num_epochs=2,
                                           exp_name="v4",
@@ -224,6 +228,7 @@ if __name__ == "__main__":
 
     logger.info("\n\nEvent Deduplication Crisisfacts\n\n")
     model = EventPairwiseTemporalityModel(multipliers=[33, 10, 16],
+                                          forced=True,
                                           batch_size=128,
                                           num_epochs=2,
                                           exp_name="v4",
@@ -236,6 +241,7 @@ if __name__ == "__main__":
 
     logger.info("\n\nEvent Deduplication Disc\n\n")
     model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30],
+                                          forced=True,
                                           batch_size=128,
                                           num_epochs=2,
                                           exp_name="v4",
