@@ -203,19 +203,19 @@ class EventPairwiseTemporalityModel(object):
 
 if __name__ == "__main__":
     logger.info("\n\nEvent Narrated Time Prediction Crisisfacts")
-    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 16],
-                                          forced=True,
+    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
+                                          forced=,
                                           batch_size=128,
-                                          num_epochs=2,
+                                          num_epochs=1,
                                           exp_name="v4",
                                           transformer_model='roberta-base',
-                                          load_pretrained=False,
+                                          load_pretrained=True,
                                           task="event_temporality")
     model.train(task_validation=True)
     model.test(task_validation=True)
 
     logger.info("\n\nEvent Narrated Time Prediction Disc")
-    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30],
+    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
                                           forced=True,
                                           batch_size=128,
                                           num_epochs=2,
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     model.test(task_validation=False)
 
     logger.info("\n\nEvent Deduplication Crisisfacts")
-    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 16],
+    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
                                           forced=True,
                                           batch_size=128,
                                           num_epochs=2,
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 
 
     logger.info("\n\nEvent Deduplication Disc")
-    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30],
+    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
                                           forced=True,
                                           batch_size=128,
                                           num_epochs=2,
