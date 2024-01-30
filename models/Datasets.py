@@ -18,7 +18,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def split_stormy_dataset():
-    df = pd.read_csv("./data/stormy_data/final_df_v2.csv")
+    df = pd.read_csv("./data/stormy_data/final_df_v1.csv")
     unique_clusters = df.new_cluster.value_counts()
     large_clusters = {i: c for i, c in unique_clusters.items() if c > 500}
     medium_clusters = {i: c for i, c in unique_clusters.items() if 100 <= c <= 500}
@@ -40,9 +40,9 @@ def split_stormy_dataset():
     df_valid = df.loc[df["new_cluster"].isin(valid_index_large + valid_index_medium + valid_index_small)]
     df_test = df.loc[df["new_cluster"].isin(test_index_large + test_index_medium + test_index_small)]
     print(f"df_train (len: {len(df_train)}) - df_valid (len: {len(df_valid)}) - df_test (len: {len(df_test)})")
-    df_train.to_csv("./data/stormy_data/train_v2.csv", index=False)
-    df_valid.to_csv("./data/stormy_data/valid_v2.csv", index=False)
-    df_test.to_csv("./data/stormy_data/test_v2.csv", index=False)
+    df_train.to_csv("./data/stormy_data/train_v1.csv", index=False)
+    df_valid.to_csv("./data/stormy_data/valid_v1.csv", index=False)
+    df_test.to_csv("./data/stormy_data/test_v1.csv", index=False)
 
 
 def split_crisisfacts_dataset():
