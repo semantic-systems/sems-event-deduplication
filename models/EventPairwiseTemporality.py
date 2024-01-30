@@ -212,95 +212,95 @@ class EventPairwiseTemporalityModel(object):
 
 if __name__ == "__main__":
     ## split_crisisfacts_dataset()
-    #
-    # logger.info("\n\nEvent Deduplication Disc\n")
-    # model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
-    #                                       forced=True,
-    #                                       batch_size=512,
-    #                                       num_epochs=10,
-    #                                       exp_name="v5",
-    #                                       transformer_model='distilbert-base-cased',
-    #                                       load_pretrained=False,
-    #                                       task="event_deduplication")
-    #
-    # model.train(task_validation=False)
-    # model.test(task_validation=False)
 
-    # logger.info("\n\nEvent Deduplication Crisisfacts (Pretrained on DISC)\n")
-    # model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
-    #                                       forced=True,
-    #                                       batch_size=256,
-    #                                       num_epochs=2,
-    #                                       exp_name="pretrained_on_disc",
-    #                                       transformer_model='distilbert-base-cased',
-    #                                       load_pretrained=True,
-    #                                       pretrained_model_path="./outputs/v5/event_deduplication/disc/",
-    #                                       task="event_deduplication")
-    # model.train(task_validation=True)
-    # model.test(task_validation=True)
+    logger.info("\n\nEvent Deduplication Disc\n")
+    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
+                                          forced=False,
+                                          batch_size=256,
+                                          num_epochs=5,
+                                          exp_name="v6",
+                                          transformer_model='roberta-based',
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+
+    model.train(task_validation=False)
+    model.test(task_validation=False)
+
+    logger.info("\n\nEvent Deduplication Crisisfacts (Pretrained on DISC)\n")
+    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
+                                          forced=False,
+                                          batch_size=128,
+                                          num_epochs=2,
+                                          exp_name="pretrained_on_disc_roberta",
+                                          transformer_model='roberta-base',
+                                          load_pretrained=True,
+                                          pretrained_model_path="./outputs/v6/event_deduplication/disc/",
+                                          task="event_deduplication")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
 
 
-    # logger.info("\n\nEvent Narrated Time Prediction Crisisfacts (Pretrained on DISC)\n")
-    # model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
-    #                                       forced=True,
-    #                                       batch_size=256,
-    #                                       num_epochs=5,
-    #                                       exp_name="pretrained_on_disc",
-    #                                       transformer_model='distilbert-base-cased',
-    #                                       load_pretrained=True,
-    #                                       pretrained_model_path="./outputs/v5/event_deduplication/disc",
-    #                                       task="event_temporality")
-    # model.train(task_validation=True)
-    # model.test(task_validation=True)
-    #
-    #
-    # logger.info("\n\nEvent Deduplication Crisisfacts\n")
-    # model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
-    #                                       forced=False,
-    #                                       batch_size=256,
-    #                                       num_epochs=2,
-    #                                       exp_name="v5",
-    #                                       transformer_model='distilbert-base-cased',
-    #                                       load_pretrained=False,
-    #                                       task="event_deduplication")
-    # model.train(task_validation=True)
-    # model.test(task_validation=True)
-    #
-    #
-    # logger.info("\n\nEvent Narrated Time Prediction Crisisfacts\n")
-    # model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
-    #                                       forced=False,
-    #                                       batch_size=256,
-    #                                       num_epochs=5,
-    #                                       exp_name="v5",
-    #                                       transformer_model='distilbert-base-cased',
-    #                                       load_pretrained=False,
-    #                                       task="event_temporality")
-    # model.train(task_validation=True)
-    # model.test(task_validation=True)
-    #
-    # logger.info("\n\nEvent Narrated Time Prediction Disc\n")
-    # model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
-    #                                       forced=True,
-    #                                       batch_size=512,
-    #                                       num_epochs=10,
-    #                                       exp_name="v5",
-    #                                       transformer_model='distilbert-base-cased',
-    #                                       load_pretrained=False,
-    #                                       task="event_temporality")
-    # model.train(task_validation=False)
-    # model.test(task_validation=False)
+    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts (Pretrained on DISC)\n")
+    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
+                                          forced=False,
+                                          batch_size=128,
+                                          num_epochs=5,
+                                          exp_name="pretrained_on_disc_roberta",
+                                          transformer_model='roberta-base',
+                                          load_pretrained=True,
+                                          pretrained_model_path="./outputs/v6/event_deduplication/disc",
+                                          task="event_temporality")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+
+    logger.info("\n\nEvent Deduplication Crisisfacts\n")
+    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
+                                          forced=False,
+                                          batch_size=128,
+                                          num_epochs=2,
+                                          exp_name="v6",
+                                          transformer_model='roberta-base',
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+
+    logger.info("\n\nEvent Narrated Time Prediction Crisisfacts\n")
+    model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
+                                          forced=False,
+                                          batch_size=128,
+                                          num_epochs=5,
+                                          exp_name="v6",
+                                          transformer_model='roberta-base',
+                                          load_pretrained=False,
+                                          task="event_temporality")
+    model.train(task_validation=True)
+    model.test(task_validation=True)
+
+    logger.info("\n\nEvent Narrated Time Prediction Disc\n")
+    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
+                                          forced=False,
+                                          batch_size=256,
+                                          num_epochs=5,
+                                          exp_name="v6",
+                                          transformer_model='roberta-base',
+                                          load_pretrained=False,
+                                          task="event_temporality")
+    model.train(task_validation=False)
+    model.test(task_validation=False)
 
     ## pretrained on event narrated time prediction disc
     logger.info("\n\nEvent Deduplication Crisisfacts (Pretrained on DISC ENT)\n")
     model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
                                           forced=False,
-                                          batch_size=256,
-                                          num_epochs=2,
-                                          transformer_model='distilbert-base-cased',
+                                          batch_size=128,
+                                          num_epochs=5,
+                                          transformer_model='roberta-base',
                                           load_pretrained=True,
-                                          exp_name="pretrained_on_disc",
-                                          pretrained_model_path="./outputs/v5/event_temporality/disc",
+                                          exp_name="pretrained_on_disc_roberta",
+                                          pretrained_model_path="./outputs/v6/event_temporality/disc",
                                           task="event_deduplication")
     model.train(task_validation=True)
     model.test(task_validation=True)
@@ -308,12 +308,12 @@ if __name__ == "__main__":
     logger.info("\n\nEvent Narrated Time Prediction Crisisfacts (Pretrained on DISC ENT)\n")
     model = EventPairwiseTemporalityModel(multipliers=[33, 10, 30, 16],
                                           forced=False,
-                                          batch_size=256,
+                                          batch_size=128,
                                           num_epochs=5,
-                                          exp_name="pretrained_on_disc",
-                                          transformer_model='distilbert-base-cased',
+                                          exp_name="pretrained_on_disc_roberta",
+                                          transformer_model='roberta-base',
                                           load_pretrained=True,
-                                          pretrained_model_path="./outputs/v5/event_temporality/disc",
+                                          pretrained_model_path="./outputs/v6/event_temporality/disc",
                                           task="event_temporality")
     model.train(task_validation=True)
     model.test(task_validation=True)
