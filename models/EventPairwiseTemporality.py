@@ -219,7 +219,7 @@ if __name__ == "__main__":
                                           batch_size=256,
                                           num_epochs=5,
                                           exp_name="v6",
-                                          transformer_model='roberta-based',
+                                          transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
 
