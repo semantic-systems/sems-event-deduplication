@@ -58,20 +58,20 @@ def split_crisisfacts_dataset():
     storm_df.to_csv("./data/crisisfacts_data/crisisfacts_storm.csv", index=False)
 
 
-def generate_diversified_random_pairs(df, multiplier, get_label):
+def generate_diversified_random_pairs(df, multiplier, get_label, task):
     output_length = len(df) * multiplier
-    labels = []
     sampled_df_list = []
     M = len(df)
     if M % 2 == 1:
       M -= 1
-    sampled_df_len = 0
+    num_labels = 3 if task == "event_temporality" else 2
+    minimal_label_len = 0
     title = "title" if "title" in df.columns else "text"
     event = "wikidata_link" if "title" in df.columns else "event"
     time = "seendate" if "title" in df.columns else "unix_timestamp"
     url = "url" if "title" in df.columns else "source"
 
-    while sampled_df_len < 2*output_length:
+    while minimal_label_len < output_length/num_labels:
         B = random.sample(range(len(df)), M)
         A = list(zip(B[0:int(M/2)], B[int(M/2):M]))
         A_label = list(map(get_label, A))
@@ -92,144 +92,13 @@ def generate_diversified_random_pairs(df, multiplier, get_label):
                 columns=['sentence_a', 'event_a', 'time_a', 'labels', 'sentence_b', 'event_b', 'time_b', 'url_a',
                          'url_b'])
         sampled_df_list.append(sample_df)
-        if sum([len(d) for d in sampled_df_list]) > 2*output_length:
-            final_df = pd.concat(sampled_df_list)
-            final_df = stratified_sample(final_df, strata=["labels", "time_a", "time_b", "sentence_a", "sentence_b"], size=output_length)
-            sampled_df_len = len(final_df)
-            logger.info(f"len(sampled_df): {sampled_df_len}")
+        final_df = pd.concat(sampled_df_list)
+        final_df = final_df.drop_duplicates(keep='last')
+        sampled_df_len = len(final_df)
+        minimal_label_len = min(final_df.labels.value_counts().values)
+        logger.info(f"len(sampled_df): {sampled_df_len}")
+        logger.info(f"minimal_label_len: {minimal_label_len}")
     return final_df
-
-
-import warnings
-
-warnings.filterwarnings("ignore")
-
-
-# Functions
-def stratified_sample(df, strata, size=None, seed=None, keep_index=True):
-    '''
-    It samples data from a pandas dataframe using strata. These functions use
-    proportionate stratification:
-    n1 = (N1/N) * n
-    where:
-        - n1 is the sample size of stratum 1
-        - N1 is the population size of stratum 1
-        - N is the total population size
-        - n is the sampling size
-    Parameters
-    ----------
-    :df: pandas dataframe from which data will be sampled.
-    :strata: list containing columns that will be used in the stratified sampling.
-    :size: sampling size. If not informed, a sampling size will be calculated
-        using Cochran adjusted sampling formula:
-        cochran_n = (Z**2 * p * q) /e**2
-        where:
-            - Z is the z-value. In this case we use 1.96 representing 95%
-            - p is the estimated proportion of the population which has an
-                attribute. In this case we use 0.5
-            - q is 1-p
-            - e is the margin of error
-        This formula is adjusted as follows:
-        adjusted_cochran = cochran_n / 1+((cochran_n -1)/N)
-        where:
-            - cochran_n = result of the previous formula
-            - N is the population size
-    :seed: sampling seed
-    :keep_index: if True, it keeps a column with the original population index indicator
-
-    Returns
-    -------
-    A sampled pandas dataframe based in a set of strata.
-    Examples
-    --------
-    >> df.head()
-    	id  sex age city
-    0	123 M   20  XYZ
-    1	456 M   25  XYZ
-    2	789 M   21  YZX
-    3	987 F   40  ZXY
-    4	654 M   45  ZXY
-    ...
-    # This returns a sample stratified by sex and city containing 30% of the size of
-    # the original data
-    >> stratified = stratified_sample(df=df, strata=['sex', 'city'], size=0.3)
-    Requirements
-    ------------
-    - pandas
-    - numpy
-    '''
-    population = len(df)
-    size = __smpl_size(population, size)
-    tmp = df[strata]
-    tmp['size'] = 1
-    tmp_grpd = tmp.groupby(strata).count().reset_index()
-    tmp_grpd['samp_size'] = round(size / population * tmp_grpd['size']).astype(int)
-
-    # controlling variable to create the dataframe or append to it
-    first = True
-    for i in range(len(tmp_grpd)):
-        # query generator for each iteration
-        qry = ''
-        for s in range(len(strata)):
-            stratum = strata[s]
-            value = tmp_grpd.iloc[i][stratum]
-            n = tmp_grpd.iloc[i]['samp_size']
-
-            if type(value) == str:
-                value = "'" + str(value) + "'"
-
-            if s != len(strata) - 1:
-                qry = qry + stratum + ' == ' + str(value) + ' & '
-            else:
-                qry = qry + stratum + ' == ' + str(value)
-
-        # final dataframe
-        if first:
-            stratified_df = df.query(qry).sample(n=n, random_state=seed).reset_index(drop=(not keep_index))
-            first = False
-        else:
-            tmp_df = df.query(qry).sample(n=n, random_state=seed).reset_index(drop=(not keep_index))
-            stratified_df = pd.concat([stratified_df, tmp_df], ignore_index=True)
-
-    return stratified_df
-
-
-def __smpl_size(population, size):
-    '''
-    A function to compute the sample size. If not informed, a sampling
-    size will be calculated using Cochran adjusted sampling formula:
-        cochran_n = (Z**2 * p * q) /e**2
-        where:
-            - Z is the z-value. In this case we use 1.96 representing 95%
-            - p is the estimated proportion of the population which has an
-                attribute. In this case we use 0.5
-            - q is 1-p
-            - e is the margin of error
-        This formula is adjusted as follows:
-        adjusted_cochran = cochran_n / 1+((cochran_n -1)/N)
-        where:
-            - cochran_n = result of the previous formula
-            - N is the population size
-    Parameters
-    ----------
-        :population: population size
-        :size: sample size (default = None)
-    Returns
-    -------
-    Calculated sample size to be used in the functions:
-        - stratified_sample
-        - stratified_sample_report
-    '''
-    if size is None:
-        cochran_n = round(((1.96) ** 2 * 0.5 * 0.5) / 0.02 ** 2)
-        n = round(cochran_n / (1 + ((cochran_n - 1) / population)))
-    elif size >= 0 and size < 1:
-        n = round(population * size)
-    elif size < 0:
-        raise ValueError('Parameter "size" must be an integer or a proportion between 0 and 0.99.')
-    elif size >= 1:
-        n = size
-    return n
 
 
 class StormyDataset(torch.utils.data.Dataset):
@@ -269,7 +138,7 @@ class StormyDataset(torch.utils.data.Dataset):
 
     def get_sentence_pairs(self, save_path=None, forced=True):
         if not Path(save_path).exists() or forced:
-            df = generate_diversified_random_pairs(self.df, self.multiplier, self.get_label)
+            df = generate_diversified_random_pairs(self.df, self.multiplier, self.get_label, self.task)
             df.to_csv(save_path)
             logger.info(f"Sentence-pairs size: {len(df)}.")
             df["sentence_pairs"] = df["sentence_a"] + " " + df["sentence_b"]
@@ -379,7 +248,7 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 
     def get_sentence_pairs(self, save_path=None, forced=True):
         if not Path(save_path).exists() or forced:
-            df = generate_diversified_random_pairs(self.df, self.multiplier, self.get_label)
+            df = generate_diversified_random_pairs(self.df, self.multiplier, self.get_label, self.task)
             df.to_csv(save_path)
             logger.info(f"Sentence-pairs size: {len(df)}.")
             df["sentence_pairs"] = df["sentence_a"] + " " + df["sentence_b"]
