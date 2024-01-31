@@ -328,25 +328,25 @@ if __name__ == "__main__":
     train_csv_path = Path("./data/stormy_data/train_v3.csv")
     valid_csv_path = Path("./data/stormy_data/valid_v3.csv")
     test_csv_path = Path("./data/stormy_data/test_v3.csv")
-    # train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", multiplier=35, data_type="train", forced=True)
-    # valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", multiplier=30, data_type="valid", forced=True)
-    # test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", multiplier=30, data_type="test", forced=True)
-    #
-    # train_event_temporality_storm = StormyDataset(train_csv_path, task="event_temporality", multiplier=50, data_type="train", forced=True)
-    # valid_event_temporality_storm = StormyDataset(valid_csv_path, task="event_temporality", multiplier=30, data_type="valid", forced=True)
-    # test_event_temporality_storm = StormyDataset(test_csv_path, task="event_temporality", multiplier=30, data_type="test", forced=True)
-    #
+    train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", multiplier=35, data_type="train", forced=True)
+    valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", multiplier=30, data_type="valid", forced=True)
+    test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", multiplier=30, data_type="test", forced=True)
+
+    train_event_temporality_storm = StormyDataset(train_csv_path, task="event_temporality", multiplier=50, data_type="train", forced=True)
+    valid_event_temporality_storm = StormyDataset(valid_csv_path, task="event_temporality", multiplier=30, data_type="valid", forced=True)
+    test_event_temporality_storm = StormyDataset(test_csv_path, task="event_temporality", multiplier=30, data_type="test", forced=True)
+
 
     train_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
     valid_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
     test_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
-    train_event_deduplication_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_deduplication",
-                                                               multiplier=23.3, data_type="train", forced=True)
-    valid_event_deduplication_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_deduplication",
-                                                               multiplier=10, data_type="valid", forced=True)
-    test_event_deduplication_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_deduplication",
-                                                              multiplier=16, data_type="test", forced=True)
-
-    train_event_temporality_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_temporality", multiplier=33, data_type="train", forced=True)
-    valid_event_temporality_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_temporality", multiplier=10, data_type="valid", forced=True)
-    test_event_temporality_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_temporality", multiplier=16, data_type="test", forced=True)
+    # train_event_deduplication_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_deduplication",
+    #                                                            multiplier=23.3, data_type="train", forced=True)
+    # valid_event_deduplication_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_deduplication",
+    #                                                            multiplier=10, data_type="valid", forced=True)
+    # test_event_deduplication_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_deduplication",
+    #                                                           multiplier=16, data_type="test", forced=True)
+    #
+    # train_event_temporality_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_temporality", multiplier=33, data_type="train", forced=True)
+    # valid_event_temporality_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_temporality", multiplier=10, data_type="valid", forced=True)
+    # test_event_temporality_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_temporality", multiplier=16, data_type="test", forced=True)
