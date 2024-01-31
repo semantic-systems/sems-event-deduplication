@@ -174,7 +174,7 @@ class EventPairwiseTemporalityModel(object):
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
-        test_csv_path = Path("./data/stormy_data/test_v3.csv")
+        test_csv_path = Path(f"./data/stormy_data/{self.task}/test_v3.csv")
         df = pd.read_csv(test_csv_path)
         with open(Path("./outputs", self.exp_name, self.task, "test", f"test_{self.exp_name}_{self.task}_gdelt_prediction.pkl"), "rb") as fp:
             predictions = pickle.load(fp)
@@ -189,7 +189,7 @@ class EventPairwiseTemporalityModel(object):
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
-        test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
+        test_csv_path = Path(f"./data/crisisfacts_data/{self.task}/crisisfacts_test.csv")
         df = pd.read_csv(test_csv_path)
         with open(Path("./outputs", self.exp_name, self.task, "test",
                        f"test_{self.exp_name}_{self.task}_crisisfacts_prediction.pkl"), "rb") as fp:
