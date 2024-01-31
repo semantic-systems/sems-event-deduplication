@@ -78,7 +78,6 @@ def generate_diversified_random_pairs(df, multiplier, get_label):
         A_label_ignored_indics = [i for i, label in enumerate(A_label) if label == "ignored"]
         non_ignored_pairs = {i: a for i, a in enumerate(A) if i not in A_label_ignored_indics}
         sample_indics = list(non_ignored_pairs.keys())
-        print(f"sample_indics: {sample_indics}")
         sentence_a = [df[title].values[A[pair][0]] for pair in sample_indics]
         sentence_b = [df[title].values[A[pair][1]] for pair in sample_indics]
         event_a = [df[event].values[A[pair][0]] for pair in sample_indics]
@@ -94,7 +93,7 @@ def generate_diversified_random_pairs(df, multiplier, get_label):
                          'url_b'])
         sampled_df_list.append(sample_df)
         if sum([len(d) for d in sampled_df_list]) > 2*output_length:
-            final_df = pd.concat([sampled_df_list])
+            final_df = pd.concat(sampled_df_list)
             final_df = stratified_sample(final_df, strata=["labels", "time_a", "time_b", "sentence_a", "sentence_b"], size=output_length)
             sampled_df_len = len(final_df)
             logger.info(f"len(sampled_df): {sampled_df_len}")
