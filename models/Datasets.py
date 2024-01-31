@@ -1,13 +1,9 @@
-import json
-from collections import Counter
+from math import floor
 import logging
-import numpy as np
 import pandas as pd
 import torch
 from pathlib import Path
 from torch.utils.data import Dataset
-from itertools import product, chain
-import pickle
 import random
 from sklearn.model_selection import train_test_split
 
@@ -97,7 +93,7 @@ def generate_diversified_random_pairs(df, multiplier, get_label, task):
         minimal_label_len = min(final_df.labels.value_counts().values)
         logger.info(f"minimal_label_len: {minimal_label_len}/{output_length/num_labels}")
     stratified_sample = final_df.groupby('labels').apply(
-        lambda x: x.sample(n=output_length)
+        lambda x: x.sample(n=floor(output_length))
     )
     logger.info(f"stratified sampled df: {len(stratified_sample)}.")
     return stratified_sample
