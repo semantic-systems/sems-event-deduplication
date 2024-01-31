@@ -93,7 +93,7 @@ def generate_diversified_random_pairs(df, multiplier, get_label, task):
         minimal_label_len = min(final_df.labels.value_counts().values)
         logger.info(f"minimal_label_len: {minimal_label_len}/{output_length/num_labels}")
     stratified_sample = final_df.groupby('labels').apply(
-        lambda x: x.sample(n=floor(output_length))
+        lambda x: x.sample(n=floor(output_length/num_labels))
     )
     logger.info(f"stratified sampled df: {len(stratified_sample)}.")
     return stratified_sample
@@ -341,7 +341,7 @@ if __name__ == "__main__":
     valid_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
     test_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
     train_event_deduplication_crisisfacts = CrisisFactsDataset(train_crisisfacts_csv_path, task="event_deduplication",
-                                                               multiplier=20, data_type="train", forced=True)
+                                                               multiplier=23.3, data_type="train", forced=True)
     valid_event_deduplication_crisisfacts = CrisisFactsDataset(valid_crisisfacts_csv_path, task="event_deduplication",
                                                                multiplier=10, data_type="valid", forced=True)
     test_event_deduplication_crisisfacts = CrisisFactsDataset(test_crisisfacts_csv_path, task="event_deduplication",
