@@ -326,20 +326,20 @@ class CrisisFactsDataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    split_stormy_dataset()
+    # split_stormy_dataset()
     # split_crisisfacts_dataset()
 
     train_csv_path = Path("./data/stormy_data/train_v3.csv")
     valid_csv_path = Path("./data/stormy_data/valid_v3.csv")
     test_csv_path = Path("./data/stormy_data/test_v3.csv")
-    train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", multiplier=35, data_type="train", forced=True)
-    valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", multiplier=30, data_type="valid", forced=True)
-    test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", multiplier=30, data_type="test", forced=True)
-
-    train_event_temporality_storm = StormyDataset(train_csv_path, task="event_temporality", multiplier=50, data_type="train", forced=True)
-    valid_event_temporality_storm = StormyDataset(valid_csv_path, task="event_temporality", multiplier=30, data_type="valid", forced=True)
-    test_event_temporality_storm = StormyDataset(test_csv_path, task="event_temporality", multiplier=30, data_type="test", forced=True)
-
+    # train_event_deduplication_storm = StormyDataset(train_csv_path, task="event_deduplication", multiplier=35, data_type="train", forced=True)
+    # valid_event_deduplication_storm = StormyDataset(valid_csv_path, task="event_deduplication", multiplier=30, data_type="valid", forced=True)
+    # test_event_deduplication_storm = StormyDataset(test_csv_path, task="event_deduplication", multiplier=30, data_type="test", forced=True)
+    #
+    # train_event_temporality_storm = StormyDataset(train_csv_path, task="event_temporality", multiplier=50, data_type="train", forced=True)
+    # valid_event_temporality_storm = StormyDataset(valid_csv_path, task="event_temporality", multiplier=30, data_type="valid", forced=True)
+    # test_event_temporality_storm = StormyDataset(test_csv_path, task="event_temporality", multiplier=30, data_type="test", forced=True)
+    #
 
     train_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_train.csv")
     valid_crisisfacts_csv_path = Path("./data/crisisfacts_data/crisisfacts_valid.csv")
