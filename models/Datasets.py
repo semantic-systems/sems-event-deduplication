@@ -94,11 +94,13 @@ def generate_diversified_random_pairs(df, multiplier, get_label, task):
         sampled_df_list.append(sample_df)
         final_df = pd.concat(sampled_df_list)
         final_df = final_df.drop_duplicates(keep='last')
-        sampled_df_len = len(final_df)
         minimal_label_len = min(final_df.labels.value_counts().values)
-        logger.info(f"len(sampled_df): {sampled_df_len}")
-        logger.info(f"minimal_label_len: {minimal_label_len}")
-    return final_df
+        logger.info(f"minimal_label_len: {minimal_label_len}/{output_length/num_labels}")
+    stratified_sample = final_df.groupby('labels').apply(
+        lambda x: x.sample(n=output_length)
+    )
+    logger.info(f"stratified sampled df: {len(stratified_sample)}.")
+    return stratified_sample
 
 
 class StormyDataset(torch.utils.data.Dataset):
