@@ -1,7 +1,9 @@
+import pickle
 from pathlib import Path
 import math
 import logging
 
+import pandas as pd
 import torch.cuda
 from torch import nn
 from sentence_transformers import SentencesDataset, losses, models, InputExample, SentenceTransformer
@@ -72,8 +74,8 @@ class EventPairwiseTemporalityModel(object):
 
     def prepare_data(self, data_type="train"):
         if data_type != "test":
-            train_csv_path = Path("./data/stormy_data/train_v2.csv")
-            valid_csv_path = Path("./data/stormy_data/valid_v2.csv")
+            train_csv_path = Path("./data/stormy_data/train_v3.csv")
+            valid_csv_path = Path("./data/stormy_data/valid_v3.csv")
             train = StormyDataset(train_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[0]) #50
             valid = StormyDataset(valid_csv_path, task=self.task, data_type="valid", forced=self.forced, multiplier=self.multipliers[1]) #30
             train_examples = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
@@ -84,7 +86,7 @@ class EventPairwiseTemporalityModel(object):
             logger.info(f"Test (Disc - valid): {len(valid_examples)} pairs of sentences\n\n")
             return train_examples, valid_examples
         else:
-            test_csv_path = Path("./data/stormy_data/test_v2.csv")
+            test_csv_path = Path("./data/stormy_data/test_v3.csv")
             test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[2]) #30
             test_examples = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                            label=test.labels[i]) for i in range(len(test))]
@@ -113,7 +115,7 @@ class EventPairwiseTemporalityModel(object):
 
             return train_examples_crisisfact, valid_examples_crisisfact
         else:
-            test_csv_path = Path("./data/stormy_data/test_v2.csv")
+            test_csv_path = Path("./data/stormy_data/test_v3.csv")
             test = StormyDataset(test_csv_path, task=self.task, data_type=data_type, forced=self.forced, multiplier=self.multipliers[2]) #30
             test_examples = [InputExample(texts=[test.sampled_df.sentence_a.values[i], test.sampled_df.sentence_b.values[i]],
                                           label=test.labels[i]) for i in range(len(test))]
@@ -172,6 +174,12 @@ class EventPairwiseTemporalityModel(object):
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
+        test_csv_path = Path("./data/stormy_data/test_v3.csv")
+        df = pd.read_csv(test_csv_path)
+        with open(Path("./outputs", self.exp_name, self.task, "test", f"test_{self.exp_name}_{self.task}_gdelt_prediction.pkl"), "rb") as fp:
+            predictions = pickle.load(fp)
+        df["predictions"] = predictions
+        df.to_csv(Path("./outputs", self.exp_name, self.task, "test", "test_predictions_disc.csv"))
 
         logger.info(f"Testing on Crisisfacts test set...")
         testing_dataset = SentencesDataset(testing_data_crisisfacts_test, self.model)
@@ -181,6 +189,13 @@ class EventPairwiseTemporalityModel(object):
                                                               softmax_model=self.train_loss)
 
         testing_evaluator(self.model, output_path=str(Path("./outputs", self.exp_name, self.task, "test")))
+        test_csv_path = Path("./data/crisisfacts_data/crisisfacts_test.csv")
+        df = pd.read_csv(test_csv_path)
+        with open(Path("./outputs", self.exp_name, self.task, "test",
+                       f"test_{self.exp_name}_{self.task}_crisisfacts_prediction.pkl"), "rb") as fp:
+            predictions = pickle.load(fp)
+        df["predictions"] = predictions
+        df.to_csv(Path("./outputs", self.exp_name, self.task, "test", "test_predictions_crisisfacts.csv"))
 
 
     @staticmethod
@@ -213,7 +228,7 @@ class EventPairwiseTemporalityModel(object):
 if __name__ == "__main__":
     ## split_crisisfacts_dataset()
     logger.info("\n\nEvent Deduplication Crisisfacts\n")
-    model = EventPairwiseTemporalityModel(multipliers=[20, 10, 30, 16],
+    model = EventPairwiseTemporalityModel(multipliers=[23.3, 10, 30, 16],
                                           forced=False,
                                           batch_size=128,
                                           num_epochs=5,
@@ -221,6 +236,7 @@ if __name__ == "__main__":
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
+    model.test(task_validation=True)
     model.train(task_validation=True)
     model.test(task_validation=True)
 
