@@ -108,8 +108,8 @@ class EventPairwiseTemporalityModel(object):
             valid = CrisisFactsDataset(valid_csv_path, task=self.task, data_type="valid", forced=self.forced, multiplier=self.multipliers[1]) #30
             train_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
                                                      label=train.labels[i]) for i in range(len(train))]
-            valid_examples_crisisfact = [InputExample(texts=[train.sampled_df.sentence_a.values[i], train.sampled_df.sentence_b.values[i]],
-                                                      label=train.labels[i]) for i in range(len(valid))]
+            valid_examples_crisisfact = [InputExample(texts=[valid.sampled_df.sentence_a.values[i], valid.sampled_df.sentence_b.values[i]],
+                                                      label=valid.labels[i]) for i in range(len(valid))]
             logger.info(f"Test (Crisisfacts - train): {len(train_examples_crisisfact)} pairs of sentences")
             logger.info(f"Test (Crisisfacts - valid): {len(valid_examples_crisisfact)} pairs of sentences\n\n")
 
@@ -236,7 +236,6 @@ if __name__ == "__main__":
                                           transformer_model='distilbert/distilroberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
-    model.test(task_validation=True)
     model.train(task_validation=True)
     model.test(task_validation=True)
 
