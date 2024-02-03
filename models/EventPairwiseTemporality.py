@@ -18,9 +18,9 @@ from Datasets import split_crisisfacts_dataset, split_stormy_dataset
 logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.INFO)
-torch.manual_seed(0)
-random.seed(0)
-np.random.seed(0)
+torch.manual_seed(1)
+random.seed(1)
+np.random.seed(1)
 
 
 class EventPairwiseTemporalityModel(object):
@@ -261,7 +261,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=512,
                                           num_epochs=5,
-                                          exp_name="v9",
+                                          exp_name="seed2-distilroberta",
                                           transformer_model='distilbert/distilroberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
@@ -274,7 +274,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=512,
                                           num_epochs=5,
-                                          exp_name="v9",
+                                          exp_name="seed2-distilroberta",
                                           transformer_model='distilbert/distilroberta-base',
                                           load_pretrained=False,
                                           task="event_temporality")
@@ -285,12 +285,11 @@ if __name__ == "__main__":
     model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
                                           forced=False,
                                           batch_size=256,
-                                          num_epochs=10,
-                                          exp_name="v10roberta-base",
+                                          num_epochs=5,
+                                          exp_name="seed2-roberta-base",
                                           transformer_model='roberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
-
     model.train(task_validation=False)
     model.test(task_validation=False)
 
@@ -298,9 +297,33 @@ if __name__ == "__main__":
     model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
                                           forced=False,
                                           batch_size=256,
-                                          num_epochs=10,
-                                          exp_name="v10roberta-base",
+                                          num_epochs=5,
+                                          exp_name="seed2-roberta-base",
                                           transformer_model='roberta-base',
+                                          load_pretrained=False,
+                                          task="event_temporality")
+    model.train(task_validation=False)
+    model.test(task_validation=False)
+
+    logger.info("\n\nEvent Deduplication Disc\n")
+    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
+                                          forced=False,
+                                          batch_size=256,
+                                          num_epochs=5,
+                                          exp_name="seed2-bert-base-cased",
+                                          transformer_model='bert-base-cased',
+                                          load_pretrained=False,
+                                          task="event_deduplication")
+    model.train(task_validation=False)
+    model.test(task_validation=False)
+
+    logger.info("\n\nEvent Narrated Time Prediction Disc\n")
+    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
+                                          forced=False,
+                                          batch_size=256,
+                                          num_epochs=5,
+                                          exp_name="seed2-roberta-base",
+                                          transformer_model='bert-base-cased',
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=False)
