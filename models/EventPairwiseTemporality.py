@@ -1,8 +1,10 @@
 import pickle
+import random
 from pathlib import Path
 import math
 import logging
 
+import numpy as np
 import pandas as pd
 import torch.cuda
 from torch import nn
@@ -16,6 +18,9 @@ from Datasets import split_crisisfacts_dataset, split_stormy_dataset
 logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.INFO)
+torch.manual_seed(0)
+random.seed(0)
+np.random.seed(0)
 
 
 class EventPairwiseTemporalityModel(object):
@@ -232,7 +237,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=256,
                                           num_epochs=5,
-                                          exp_name="v8",
+                                          exp_name="v9",
                                           transformer_model='distilbert/distilroberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
@@ -244,7 +249,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=256,
                                           num_epochs=5,
-                                          exp_name="v8",
+                                          exp_name="v9",
                                           transformer_model='distilbert/distilroberta-base',
                                           load_pretrained=False,
                                           task="event_temporality")
@@ -256,7 +261,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=512,
                                           num_epochs=5,
-                                          exp_name="v8",
+                                          exp_name="v9",
                                           transformer_model='distilbert/distilroberta-base',
                                           load_pretrained=False,
                                           task="event_deduplication")
@@ -269,7 +274,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=512,
                                           num_epochs=5,
-                                          exp_name="v8",
+                                          exp_name="v9",
                                           transformer_model='distilbert/distilroberta-base',
                                           load_pretrained=False,
                                           task="event_temporality")
