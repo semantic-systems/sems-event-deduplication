@@ -310,7 +310,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=450,
                                           num_epochs=5,
-                                          exp_name="seed2-distilbert",
+                                          exp_name="seed1-distilbert",
                                           transformer_model='distilbert/distilbert-base-cased',
                                           load_pretrained=False,
                                           task="event_deduplication")
@@ -323,7 +323,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=450,
                                           num_epochs=5,
-                                          exp_name="seed2-distilbert",
+                                          exp_name="seed1-distilbert",
                                           transformer_model='distilbert/distilbert-base-cased',
                                           load_pretrained=False,
                                           task="event_temporality")
@@ -335,7 +335,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=256,
                                           num_epochs=5,
-                                          exp_name="seed2-bert-base-cased",
+                                          exp_name="seed1-bert-base-cased",
                                           transformer_model='bert-base-cased',
                                           load_pretrained=False,
                                           task="event_deduplication")
@@ -347,7 +347,7 @@ if __name__ == "__main__":
                                           forced=False,
                                           batch_size=256,
                                           num_epochs=5,
-                                          exp_name="seed2-bert-base-cased",
+                                          exp_name="seed1-bert-base-cased",
                                           transformer_model='bert-base-cased',
                                           load_pretrained=False,
                                           task="event_temporality")
