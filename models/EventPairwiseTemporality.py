@@ -228,53 +228,6 @@ class EventPairwiseTemporalityModel(object):
 
 
 if __name__ == "__main__":
-
-    torch.manual_seed(0)
-    random.seed(0)
-    np.random.seed(0)
-
-    logger.info("\n\nEvent Narrated Time Prediction Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
-                                          forced=False,
-                                          batch_size=450,
-                                          num_epochs=5,
-                                          exp_name="seed0-distilbert",
-                                          transformer_model='distilbert/distilbert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_temporality")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
-    torch.manual_seed(2)
-    random.seed(2)
-    np.random.seed(2)
-
-    logger.info("\n\nEvent Deduplication Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
-                                          forced=False,
-                                          batch_size=450,
-                                          num_epochs=5,
-                                          exp_name="seed2-distilbert",
-                                          transformer_model='distilbert/distilbert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
-
-    logger.info("\n\nEvent Narrated Time Prediction Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
-                                          forced=False,
-                                          batch_size=450,
-                                          num_epochs=5,
-                                          exp_name="seed2-distilbert",
-                                          transformer_model='distilbert/distilbert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_temporality")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
     torch.manual_seed(3)
     random.seed(3)
     np.random.seed(3)
@@ -282,76 +235,104 @@ if __name__ == "__main__":
     logger.info("\n\nEvent Deduplication Disc\n")
     model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
                                           forced=False,
-                                          batch_size=256,
+                                          batch_size=450,
                                           num_epochs=5,
-                                          exp_name="seed3-bert-base-cased",
-                                          transformer_model='bert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
-    logger.info("\n\nEvent Narrated Time Prediction Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
-                                          forced=False,
-                                          batch_size=256,
-                                          num_epochs=5,
-                                          exp_name="seed3-bert-base-cased",
-                                          transformer_model='bert-base-cased',
-                                          load_pretrained=False,
-                                          task="event_temporality")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
-
-    logger.info("\n\nEvent Deduplication Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
-                                          forced=False,
-                                          batch_size=512,
-                                          num_epochs=5,
-                                          exp_name="seed3-distilroberta",
-                                          transformer_model='distilbert/distilroberta-base',
+                                          exp_name="seed3-distilbert",
+                                          transformer_model='distilbert/distilbert-base-cased',
                                           load_pretrained=False,
                                           task="event_deduplication")
 
     model.train(task_validation=False)
     model.test(task_validation=False)
 
-    logger.info("\n\nEvent Narrated Time Prediction Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
-                                          forced=False,
-                                          batch_size=512,
-                                          num_epochs=5,
-                                          exp_name="seed3-distilroberta",
-                                          transformer_model='distilbert/distilroberta-base',
-                                          load_pretrained=False,
-                                          task="event_temporality")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
-
-    logger.info("\n\nEvent Deduplication Disc\n")
-    model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
-                                          forced=False,
-                                          batch_size=256,
-                                          num_epochs=5,
-                                          exp_name="seed3-roberta-base",
-                                          transformer_model='roberta-base',
-                                          load_pretrained=False,
-                                          task="event_deduplication")
-    model.train(task_validation=False)
-    model.test(task_validation=False)
 
     logger.info("\n\nEvent Narrated Time Prediction Disc\n")
     model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
                                           forced=False,
-                                          batch_size=256,
+                                          batch_size=450,
                                           num_epochs=5,
-                                          exp_name="seed3-roberta-base",
-                                          transformer_model='roberta-base',
+                                          exp_name="seed3-distilbert",
+                                          transformer_model='distilbert/distilbert-base-cased',
                                           load_pretrained=False,
                                           task="event_temporality")
     model.train(task_validation=False)
     model.test(task_validation=False)
+    #
+    #
+    #
+    # logger.info("\n\nEvent Deduplication Disc\n")
+    # model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
+    #                                       forced=False,
+    #                                       batch_size=256,
+    #                                       num_epochs=5,
+    #                                       exp_name="seed3-bert-base-cased",
+    #                                       transformer_model='bert-base-cased',
+    #                                       load_pretrained=False,
+    #                                       task="event_deduplication")
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
+    #
+    # logger.info("\n\nEvent Narrated Time Prediction Disc\n")
+    # model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
+    #                                       forced=False,
+    #                                       batch_size=256,
+    #                                       num_epochs=5,
+    #                                       exp_name="seed3-bert-base-cased",
+    #                                       transformer_model='bert-base-cased',
+    #                                       load_pretrained=False,
+    #                                       task="event_temporality")
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
+    #
+    #
+    # logger.info("\n\nEvent Deduplication Disc\n")
+    # model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
+    #                                       forced=False,
+    #                                       batch_size=512,
+    #                                       num_epochs=5,
+    #                                       exp_name="seed3-distilroberta",
+    #                                       transformer_model='distilbert/distilroberta-base',
+    #                                       load_pretrained=False,
+    #                                       task="event_deduplication")
+    #
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
+    #
+    # logger.info("\n\nEvent Narrated Time Prediction Disc\n")
+    # model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
+    #                                       forced=False,
+    #                                       batch_size=512,
+    #                                       num_epochs=5,
+    #                                       exp_name="seed3-distilroberta",
+    #                                       transformer_model='distilbert/distilroberta-base',
+    #                                       load_pretrained=False,
+    #                                       task="event_temporality")
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
+    #
+    # logger.info("\n\nEvent Deduplication Disc\n")
+    # model = EventPairwiseTemporalityModel(multipliers=[35, 30, 30, 16],
+    #                                       forced=False,
+    #                                       batch_size=256,
+    #                                       num_epochs=5,
+    #                                       exp_name="seed3-roberta-base",
+    #                                       transformer_model='roberta-base',
+    #                                       load_pretrained=False,
+    #                                       task="event_deduplication")
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
+    #
+    # logger.info("\n\nEvent Narrated Time Prediction Disc\n")
+    # model = EventPairwiseTemporalityModel(multipliers=[50, 30, 30, 16],
+    #                                       forced=False,
+    #                                       batch_size=256,
+    #                                       num_epochs=5,
+    #                                       exp_name="seed3-roberta-base",
+    #                                       transformer_model='roberta-base',
+    #                                       load_pretrained=False,
+    #                                       task="event_temporality")
+    # model.train(task_validation=False)
+    # model.test(task_validation=False)
 
 
 
